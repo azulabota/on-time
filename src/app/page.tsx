@@ -9,15 +9,13 @@ export default function Home() {
           <div className="text-sm text-zinc-400">Public research dashboard</div>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-4">
           <Link
             href="/microcaps"
             className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 hover:bg-zinc-900/70"
           >
             <div className="text-lg font-medium">Small-cap token research</div>
-            <div className="mt-2 text-sm text-zinc-400">
-              Grades + realistic success projections.
-            </div>
+            <div className="mt-2 text-sm text-zinc-400">Grades + realistic success projections.</div>
           </Link>
 
           <Link
@@ -25,10 +23,21 @@ export default function Home() {
             className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 hover:bg-zinc-900/70"
           >
             <div className="text-lg font-medium">New projects (twice weekly)</div>
-            <div className="mt-2 text-sm text-zinc-400">
-              Token launches + product launches discovered by scanning sources.
-            </div>
+            <div className="mt-2 text-sm text-zinc-400">Token launches + product launches discovered by scanning sources.</div>
           </Link>
+
+          <Link
+            href="/universe"
+            className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 hover:bg-zinc-900/70"
+          >
+            <div className="text-lg font-medium">Project Universe (1M–20M cap)</div>
+            <div className="mt-2 text-sm text-zinc-400">Seed list + metered outlook score.</div>
+          </Link>
+
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5">
+            <div className="text-lg font-medium">Coming next</div>
+            <div className="mt-2 text-sm text-zinc-400">CoinMarketCap sync + richer progress tracking.</div>
+          </div>
         </div>
 
         <div className="mt-10 rounded-xl border border-zinc-800 bg-zinc-900/40 p-5">

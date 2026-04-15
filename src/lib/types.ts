@@ -38,3 +38,32 @@ export type TaskRun = {
   source: string | null;
   notes: string | null;
 };
+
+export type ProjectUniverseItem = {
+  id: number;
+  created_at: string;
+  updated_at: string;
+
+  source: string; // e.g. "coingecko"
+  external_id: string; // e.g. coingecko_id
+
+  symbol: string | null;
+  name: string;
+  image: string | null;
+
+  market_cap_usd: number | null;
+  volume_24h_usd: number | null;
+  price_usd: number | null;
+  price_change_7d_pct: number | null;
+  price_change_30d_pct: number | null;
+
+  twitter_followers: number | null;
+  commit_count_4w: number | null;
+
+  outlook_score_0_100: number | null;
+  outlook_grade: string | null;
+  outlook_factors: any | null;
+  outlook_notes: string[] | null;
+
+  last_seen_at: string | null;
+};

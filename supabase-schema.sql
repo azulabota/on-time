@@ -57,10 +57,50 @@ create table if not exists public.launch_projects (
 create index if not exists launch_projects_name_idx on public.launch_projects(name);
 create index if not exists launch_projects_created_at_idx on public.launch_projects(created_at desc);
 
+-- Universe: projects in the 1M–20M market cap band (seeded from CoinGecko / CoinMarketCap)
+create table if not exists public.project_universe (
+  id bigserial primary key,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+
+  source text not null,          -- 'coingecko' | 'coinmarketcap'
+  external_id text not null,     -- coingecko_id, cmc_id
+
+  symbol text,
+  name text not null,
+  image text,
+
+  market_cap_usd double precision,
+  volume_24h_usd double precision,
+  price_usd double precision,
+  price_change_7d_pct double precision,
+  price_change_30d_pct double precision,
+
+  twitter_followers double precision,
+  commit_count_4w double precision,
+
+  outlook_score_0_100 double precision,
+  outlook_grade text,
+  outlook_factors jsonb,
+  outlook_notes text[],
+
+  last_seen_at timestamptz
+);
+
+create unique index if not exists project_universe_source_external_id_uidx
+  on public.project_universe(source, external_id);
+
+create index if not exists project_universe_market_cap_idx
+  on public.project_universe(market_cap_usd desc);
+
+create index if not exists project_universe_updated_at_idx
+  on public.project_universe(updated_at desc);
+
 -- 2) RLS
 alter table public.task_runs enable row level security;
 alter table public.token_reports enable row level security;
 alter table public.launch_projects enable row level security;
+alter table public.project_universe enable row level security;
 
 -- Public read-only (anon) policies
 -- Note: This makes the site usable without login.
@@ -79,6 +119,12 @@ using (true);
 
 drop policy if exists "public_read_launch_projects" on public.launch_projects;
 create policy "public_read_launch_projects" on public.launch_projects
+for select
+to anon, authenticated
+using (true);
+
+drop policy if exists "public_read_project_universe" on public.project_universe;
+create policy "public_read_project_universe" on public.project_universe
 for select
 to anon, authenticated
 using (true);
