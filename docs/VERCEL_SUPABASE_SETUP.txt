@@ -1,0 +1,33 @@
+OnTime deployment (Vercel + Supabase)
+
+Repo
+- https://github.com/azulabota/on-time
+
+Supabase
+1) Create a new Supabase project
+2) In Supabase dashboard -> SQL editor
+3) Run the schema file from the repo:
+   supabase-schema.sql
+
+Vercel
+1) Import the GitHub repo into Vercel
+2) Project settings -> Environment Variables
+Add (Production + Preview):
+- NEXT_PUBLIC_SUPABASE_URL
+- NEXT_PUBLIC_SUPABASE_ANON_KEY
+- SUPABASE_SERVICE_ROLE_KEY   (server-only)
+- INGEST_API_KEY              (server-only)
+Optional later:
+- COINMARKETCAP_API_KEY
+
+3) Deploy
+
+Seed the 1M–20M Universe
+- Call the admin sync endpoint (server-only; requires x-api-key):
+  POST https://<your-domain>/api/admin/sync/coingecko?minCap=1000000&maxCap=20000000&maxPages=40
+  Header: x-api-key: <INGEST_API_KEY>
+
+Pages
+- /microcaps
+- /newtokens
+- /universe
