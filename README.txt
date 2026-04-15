@@ -1,4 +1,4 @@
-Token Tracker (Public)
+OnTime (Public)
 
 What this is
 - Public-facing website + webapp UI for:
@@ -37,7 +37,7 @@ Vercel deployment
 
 Twice-weekly automation (next step)
 - Option A: Vercel Cron -> hits /api/cron/scan?secret=...
-- Option B: Supabase scheduled function -> calls the ingest endpoints.
+- Option B: Hermes cronjob -> posts JSON to the ingest endpoints.
 
 Security note
 - Keep SUPABASE_SERVICE_ROLE_KEY and INGEST_API_KEY server-only (never in NEXT_PUBLIC_).
