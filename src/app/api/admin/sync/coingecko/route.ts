@@ -21,7 +21,7 @@ async function fetchJson(url: string) {
   const res = await fetch(url, {
     headers: {
       accept: "application/json",
-      "user-agent": "OnTime/1.0 (public tracker)",
+      "user-agent": "OnTime by OnStx/1.0 (public tracker)",
     },
     cache: "no-store",
   });
