@@ -21,6 +21,9 @@ export async function POST(req: Request) {
     return Response.json({ ok: false, error: "Missing required field: name" }, { status: 400 });
   }
 
+  const kindRaw = asString(payload.kind);
+  const kind = kindRaw === "token" || kindRaw === "product" ? kindRaw : null;
+
   const supabase = supabaseService();
 
   const { data: run, error: runErr } = await supabase
@@ -40,6 +43,7 @@ export async function POST(req: Request) {
     .from("launch_projects")
     .insert({
       name: payload.name,
+      kind,
       category: payload.category ?? null,
       launch_date: payload.launch_date ?? null,
       launch_window: payload.launch_window ?? null,

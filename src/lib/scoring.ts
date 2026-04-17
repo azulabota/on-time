@@ -3,7 +3,11 @@ export type OutlookInputs = {
   volume24hUsd: number | null;
   priceChange7dPct: number | null;
   priceChange30dPct: number | null;
-  twitterFollowers: number | null;
+
+  // Socials
+  xFollowers: number | null;
+  xActivity7d: number | null;
+
   commitCount4w: number | null;
 };
 
@@ -46,7 +50,8 @@ export function computeOutlook(inputs: OutlookInputs): OutlookResult {
   const vol = safeNum(inputs.volume24hUsd);
   const ch7 = safeNum(inputs.priceChange7dPct);
   const ch30 = safeNum(inputs.priceChange30dPct);
-  const tw = safeNum(inputs.twitterFollowers);
+  const xFollowers = safeNum(inputs.xFollowers);
+  const xActivity7d = safeNum(inputs.xActivity7d);
   const commits = safeNum(inputs.commitCount4w);
 
   // Liquidity proxy: volume / market cap
@@ -67,9 +72,18 @@ export function computeOutlook(inputs: OutlookInputs): OutlookResult {
   else if (mom30 !== null) mom = mom30;
   else notes.push("Missing price change data; momentum proxy unavailable.");
 
-  // Attention proxy: twitter followers log scale
-  const att = tw === null ? 0 : logScore(tw, 500, 250000);
-  if (tw === null) notes.push("Missing Twitter followers; attention proxy unavailable.");
+  // Attention proxy: combine X followers + recent activity (both log-scaled)
+  const attFollowers = xFollowers === null ? null : logScore(xFollowers, 500, 250000);
+  const attActivity = xActivity7d === null ? null : logScore(xActivity7d, 5, 2000);
+
+  let att = 0;
+  if (attFollowers !== null && attActivity !== null) att = 0.65 * attFollowers + 0.35 * attActivity;
+  else if (attFollowers !== null) att = attFollowers;
+  else if (attActivity !== null) att = attActivity;
+  else att = 0;
+
+  if (xFollowers === null) notes.push("Missing X followers; attention proxy (followers) unavailable.");
+  if (xActivity7d === null) notes.push("Missing X activity; attention proxy (activity) unavailable.");
 
   // Dev proxy: commits over last 4 weeks (log scale)
   const dev = commits === null ? 0 : logScore(commits, 1, 250);

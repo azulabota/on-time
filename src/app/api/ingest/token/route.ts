@@ -26,6 +26,15 @@ export async function POST(req: Request) {
   const success_projection = asString(payload.success_projection);
   const score_0_100 = asNumber(payload.score_0_100);
 
+  // Optional fields
+  const categories = Array.isArray(payload.categories)
+    ? (payload.categories.filter((x) => typeof x === "string") as string[])
+    : null;
+
+  const x_handle = asString(payload.x_handle);
+  const x_followers = asNumber(payload.x_followers);
+  const x_activity_7d = asNumber(payload.x_activity_7d);
+
   if (!symbol || !grade || !summary || !success_projection || score_0_100 === null) {
     return Response.json(
       {
@@ -52,6 +61,23 @@ export async function POST(req: Request) {
 
   if (runErr) return Response.json({ ok: false, error: runErr.message }, { status: 500 });
 
+  // basic dedupe: if same symbol+contract already exists recently, return it
+  const contract = asString(payload.contract_address);
+  if (contract) {
+    const { data: existing } = await supabase
+      .from("token_reports")
+      .select("id")
+      .eq("symbol", symbol)
+      .eq("contract_address", contract)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (existing?.id) {
+      return Response.json({ ok: true, id: existing.id, run_id: run.id, deduped: true });
+    }
+  }
+
   const { data: row, error: insErr } = await supabase
     .from("token_reports")
     .insert({
@@ -59,6 +85,10 @@ export async function POST(req: Request) {
       name: payload.name ?? null,
       chain: payload.chain ?? null,
       contract_address: payload.contract_address ?? null,
+      categories,
+      x_handle,
+      x_followers,
+      x_activity_7d,
       market_cap_usd: payload.market_cap_usd ?? null,
       fdv_usd: payload.fdv_usd ?? null,
       volume_24h_usd: payload.volume_24h_usd ?? null,

@@ -41,7 +41,7 @@ export async function POST(req: Request) {
   }
 
   const url = new URL(req.url);
-  const minCap = Number(url.searchParams.get("minCap") ?? "1000000");
+  const minCap = Number(url.searchParams.get("minCap") ?? "500000");
   const maxCap = Number(url.searchParams.get("maxCap") ?? "20000000");
   const maxPages = Number(url.searchParams.get("maxPages") ?? "40");
 
@@ -79,19 +79,26 @@ export async function POST(req: Request) {
     if (filtered.length) {
       const nowIso = new Date().toISOString();
       const upserts = filtered.map((r) => {
+        const symbol = r.symbol?.toUpperCase() ?? null;
+        const canonicalSymbol = (symbol ?? "").trim().toLowerCase();
+        const canonicalName = (r.name ?? "").trim().toLowerCase().replace(/\s+/g, "-");
+        const canonical_key = `${canonicalSymbol}|${canonicalName}`;
+
         const outlook = computeOutlook({
           marketCapUsd: r.market_cap ?? null,
           volume24hUsd: r.total_volume ?? null,
           priceChange7dPct: r.price_change_percentage_7d_in_currency ?? null,
           priceChange30dPct: r.price_change_percentage_30d_in_currency ?? null,
-          twitterFollowers: null,
+          xFollowers: null,
+          xActivity7d: null,
           commitCount4w: null,
         });
 
         return {
-          source: "coingecko",
-          external_id: r.id,
-          symbol: r.symbol?.toUpperCase() ?? null,
+          canonical_key,
+          coingecko_id: r.id,
+          primary_source: "coingecko",
+          symbol,
           name: r.name,
           image: r.image ?? null,
           market_cap_usd: r.market_cap ?? null,
@@ -110,7 +117,7 @@ export async function POST(req: Request) {
 
       const { error } = await supabase
         .from("project_universe")
-        .upsert(upserts, { onConflict: "source,external_id" });
+        .upsert(upserts, { onConflict: "canonical_key" });
 
       if (error) throw new Error(error.message);
 

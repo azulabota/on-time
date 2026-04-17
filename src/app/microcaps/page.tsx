@@ -60,6 +60,20 @@ export default async function TokensPage() {
                   <div className="mt-1 text-xs text-zinc-500">
                     {t.chain ?? ""}{t.contract_address ? ` · ${t.contract_address}` : ""}
                   </div>
+                  {(t.categories && t.categories.length) || t.x_handle ? (
+                    <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
+                      {(t.categories ?? []).slice(0, 5).map((c) => (
+                        <span key={c} className="rounded-full border border-zinc-800 bg-zinc-950/30 px-2 py-0.5 text-zinc-300">
+                          {c}
+                        </span>
+                      ))}
+                      {t.x_handle ? (
+                        <span className="rounded-full border border-zinc-800 bg-zinc-950/30 px-2 py-0.5 text-zinc-500">
+                          X: {t.x_handle}
+                        </span>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </div>
                 <div className="text-right">
                   <div className="text-sm font-medium">{t.grade}</div>

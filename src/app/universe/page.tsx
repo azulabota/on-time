@@ -36,14 +36,18 @@ function ScoreMeter({ score }: { score: number | null }) {
   );
 }
 
-export default async function UniversePage() {
+export default async function UniversePage({
+  searchParams,
+}: {
+  searchParams?: { sort?: string; category?: string; chain?: string };
+}) {
   const supabase = supabaseAnonSafe();
 
   if (!supabase) {
     return (
       <main className="flex-1">
         <div className="mx-auto max-w-3xl px-4 py-10">
-          <h1 className="text-2xl font-semibold">Project Universe (1M–20M cap)</h1>
+          <h1 className="text-2xl font-semibold">Project Universe ($500k–$20M cap)</h1>
           <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 text-sm text-zinc-300">
             This deployment is not configured yet. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.
           </div>
@@ -52,11 +56,26 @@ export default async function UniversePage() {
     );
   }
 
-  const { data, error } = await supabase
-    .from("project_universe")
-    .select("*")
-    .order("market_cap_usd", { ascending: false })
-    .limit(500);
+  const sort = (searchParams?.sort ?? "market_cap").toLowerCase();
+  const category = (searchParams?.category ?? "").trim();
+  const chain = (searchParams?.chain ?? "").trim();
+
+  let q = supabase.from("project_universe").select("*");
+
+  // filters
+  if (category) {
+    q = q.contains("categories", [category]);
+  }
+  if (chain) {
+    q = q.contains("chains", [chain]);
+  }
+
+  // sorting
+  if (sort === "outlook") q = q.order("outlook_score_0_100", { ascending: false, nullsFirst: false });
+  else if (sort === "social") q = q.order("x_followers", { ascending: false, nullsFirst: false });
+  else q = q.order("market_cap_usd", { ascending: false, nullsFirst: false });
+
+  const { data, error } = await q.limit(500);
 
   const rows = (data ?? []) as ProjectUniverseItem[];
 
@@ -65,9 +84,9 @@ export default async function UniversePage() {
       <div className="mx-auto max-w-6xl px-4 py-10">
         <div className="flex items-baseline justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold">Project Universe (1M–20M cap)</h1>
+            <h1 className="text-2xl font-semibold">Project Universe ($500k–$20M cap)</h1>
             <div className="mt-1 text-sm text-zinc-400">
-              Seeded from CoinGecko now. CoinMarketCap will be added once we connect an API key.
+              Seeded from CoinGecko now. CoinMarketCap will be added once we connect an official API key. De-duped by a canonical key.
             </div>
           </div>
           <Link className="text-sm text-sky-400 hover:underline" href="/">
@@ -81,9 +100,31 @@ export default async function UniversePage() {
           </div>
         ) : null}
 
-        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="mt-6 flex flex-wrap items-center gap-2 text-xs">
+          <div className="text-zinc-500 mr-1">Sort:</div>
+          <Link className={`rounded-full border px-3 py-1 ${sort === "market_cap" ? "border-sky-500 text-sky-300" : "border-zinc-800 text-zinc-300"}`} href={`/universe?sort=market_cap${category ? `&category=${encodeURIComponent(category)}` : ""}${chain ? `&chain=${encodeURIComponent(chain)}` : ""}`}>Market cap</Link>
+          <Link className={`rounded-full border px-3 py-1 ${sort === "outlook" ? "border-sky-500 text-sky-300" : "border-zinc-800 text-zinc-300"}`} href={`/universe?sort=outlook${category ? `&category=${encodeURIComponent(category)}` : ""}${chain ? `&chain=${encodeURIComponent(chain)}` : ""}`}>Outlook</Link>
+          <Link className={`rounded-full border px-3 py-1 ${sort === "social" ? "border-sky-500 text-sky-300" : "border-zinc-800 text-zinc-300"}`} href={`/universe?sort=social${category ? `&category=${encodeURIComponent(category)}` : ""}${chain ? `&chain=${encodeURIComponent(chain)}` : ""}`}>Social</Link>
+
+          <div className="mx-2 h-4 w-px bg-zinc-800" />
+
+          <div className="text-zinc-500 mr-1">Filters:</div>
+          <div className="rounded-full border border-zinc-800 bg-zinc-900/40 px-3 py-1 text-zinc-300">
+            Category: <span className="text-zinc-100">{category || "Any"}</span>
+          </div>
+          <div className="rounded-full border border-zinc-800 bg-zinc-900/40 px-3 py-1 text-zinc-300">
+            Chain: <span className="text-zinc-100">{chain || "Any"}</span>
+          </div>
+          {(category || chain) ? (
+            <Link className="rounded-full border border-zinc-800 px-3 py-1 text-zinc-300 hover:text-white" href={`/universe?sort=${encodeURIComponent(sort)}`}>Clear</Link>
+          ) : null}
+
+          <div className="ml-auto text-zinc-500">Showing {rows.length} projects</div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
           {rows.map((p) => (
-            <div key={`${p.source}:${p.external_id}`} className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5">
+            <div key={p.canonical_key} className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3">
                   {p.image ? (
@@ -96,7 +137,11 @@ export default async function UniversePage() {
                     <div className="text-lg font-semibold">
                       {p.name} {p.symbol ? <span className="text-zinc-400 font-normal">{p.symbol}</span> : null}
                     </div>
-                    <div className="mt-1 text-xs text-zinc-500">Source: {p.source}</div>
+                    <div className="mt-1 text-xs text-zinc-500">
+                      Source: {p.primary_source}
+                      {p.coingecko_id ? <span className="text-zinc-600"> · CG</span> : null}
+                      {p.coinmarketcap_id ? <span className="text-zinc-600"> · CMC</span> : null}
+                    </div>
                   </div>
                 </div>
 
@@ -137,6 +182,21 @@ export default async function UniversePage() {
                 <div className="mt-4 text-xs text-zinc-400">
                   Factors: liquidity {p.outlook_factors.liquidity_proxy ?? "–"} / momentum {p.outlook_factors.momentum_proxy ?? "–"} /
                   attention {p.outlook_factors.attention_proxy ?? "–"} / dev {p.outlook_factors.dev_proxy ?? "–"}
+                </div>
+              ) : null}
+
+              {(p.categories && p.categories.length) || (p.chains && p.chains.length) ? (
+                <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
+                  {(p.categories ?? []).slice(0, 4).map((c) => (
+                    <span key={c} className="rounded-full border border-zinc-800 bg-zinc-950/30 px-2 py-0.5 text-zinc-300">
+                      {c}
+                    </span>
+                  ))}
+                  {(p.chains ?? []).slice(0, 2).map((c) => (
+                    <span key={c} className="rounded-full border border-zinc-800 bg-zinc-950/30 px-2 py-0.5 text-zinc-500">
+                      {c}
+                    </span>
+                  ))}
                 </div>
               ) : null}
 

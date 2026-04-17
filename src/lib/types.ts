@@ -5,10 +5,18 @@ export type TokenReport = {
   name: string | null;
   chain: string | null;
   contract_address: string | null;
+
+  categories: string[] | null;
+
+  x_handle: string | null;
+  x_followers: number | null;
+  x_activity_7d: number | null;
+
   market_cap_usd: number | null;
   fdv_usd: number | null;
   volume_24h_usd: number | null;
   liquidity_usd: number | null;
+
   grade: string;
   score_0_100: number;
   summary: string;
@@ -20,6 +28,9 @@ export type LaunchProject = {
   id: number;
   created_at: string;
   name: string;
+
+  kind: "token" | "product" | null;
+
   category: string | null;
   launch_date: string | null;
   launch_window: string | null;
@@ -44,12 +55,21 @@ export type ProjectUniverseItem = {
   created_at: string;
   updated_at: string;
 
-  source: string; // e.g. "coingecko"
-  external_id: string; // e.g. coingecko_id
+  canonical_key: string;
+  coingecko_id: string | null;
+  coinmarketcap_id: string | null;
+  primary_source: string;
 
   symbol: string | null;
   name: string;
   image: string | null;
+
+  categories: string[] | null;
+  chains: string[] | null;
+
+  x_handle: string | null;
+  x_followers: number | null;
+  x_activity_7d: number | null;
 
   market_cap_usd: number | null;
   volume_24h_usd: number | null;
@@ -57,7 +77,6 @@ export type ProjectUniverseItem = {
   price_change_7d_pct: number | null;
   price_change_30d_pct: number | null;
 
-  twitter_followers: number | null;
   commit_count_4w: number | null;
 
   outlook_score_0_100: number | null;

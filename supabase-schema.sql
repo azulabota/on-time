@@ -21,6 +21,14 @@ create table if not exists public.token_reports (
   chain text,
   contract_address text,
 
+  -- Your tags (AI, privacy, energy, big data, robotics, real world assets, DePin, oracles, x402, ...)
+  categories text[],
+
+  -- Socials (used for "most active on socials" sorting)
+  x_handle text,
+  x_followers double precision,
+  x_activity_7d double precision,
+
   market_cap_usd double precision,
   fdv_usd double precision,
   volume_24h_usd double precision,
@@ -37,12 +45,18 @@ create table if not exists public.token_reports (
 
 create index if not exists token_reports_symbol_idx on public.token_reports(symbol);
 create index if not exists token_reports_created_at_idx on public.token_reports(created_at desc);
+create index if not exists token_reports_chain_idx on public.token_reports(chain);
+create index if not exists token_reports_score_idx on public.token_reports(score_0_100 desc);
 
 create table if not exists public.launch_projects (
   id bigserial primary key,
   created_at timestamptz not null default now(),
 
   name text not null,
+
+  -- token launch vs product/app launch
+  kind text check (kind in ('token', 'product')),
+
   category text,
   launch_date text,
   launch_window text,
@@ -56,19 +70,38 @@ create table if not exists public.launch_projects (
 
 create index if not exists launch_projects_name_idx on public.launch_projects(name);
 create index if not exists launch_projects_created_at_idx on public.launch_projects(created_at desc);
+create index if not exists launch_projects_kind_idx on public.launch_projects(kind);
 
--- Universe: projects in the 1M–20M market cap band (seeded from CoinGecko / CoinMarketCap)
+-- Universe: projects in the $500k–$20M market cap band (seeded from CoinGecko / CoinMarketCap)
+-- We store one canonical row per project using canonical_key, so syncing multiple sources won't create duplicates.
 create table if not exists public.project_universe (
   id bigserial primary key,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
 
-  source text not null,          -- 'coingecko' | 'coinmarketcap'
-  external_id text not null,     -- coingecko_id, cmc_id
+  -- Best-effort de-dup key shared across sources, e.g. "btc|bitcoin".
+  canonical_key text not null,
+
+  -- External source IDs (nullable; can have both over time)
+  coingecko_id text,
+  coinmarketcap_id text,
+
+  primary_source text not null default 'coingecko',
 
   symbol text,
   name text not null,
   image text,
+
+  -- Your tags (AI, privacy, energy, big data, robotics, real world assets, DePin, oracles, x402, ...)
+  categories text[],
+
+  -- Chains ("all" is allowed by leaving empty and using chain-agnostic metrics)
+  chains text[],
+
+  -- Socials (used for "most active on socials" sorting)
+  x_handle text,
+  x_followers double precision,
+  x_activity_7d double precision,
 
   market_cap_usd double precision,
   volume_24h_usd double precision,
@@ -76,7 +109,6 @@ create table if not exists public.project_universe (
   price_change_7d_pct double precision,
   price_change_30d_pct double precision,
 
-  twitter_followers double precision,
   commit_count_4w double precision,
 
   outlook_score_0_100 double precision,
@@ -87,11 +119,25 @@ create table if not exists public.project_universe (
   last_seen_at timestamptz
 );
 
-create unique index if not exists project_universe_source_external_id_uidx
-  on public.project_universe(source, external_id);
+create unique index if not exists project_universe_canonical_key_uidx
+  on public.project_universe(canonical_key);
+
+create unique index if not exists project_universe_coingecko_id_uidx
+  on public.project_universe(coingecko_id)
+  where coingecko_id is not null;
+
+create unique index if not exists project_universe_coinmarketcap_id_uidx
+  on public.project_universe(coinmarketcap_id)
+  where coinmarketcap_id is not null;
 
 create index if not exists project_universe_market_cap_idx
   on public.project_universe(market_cap_usd desc);
+
+create index if not exists project_universe_outlook_score_idx
+  on public.project_universe(outlook_score_0_100 desc);
+
+create index if not exists project_universe_x_followers_idx
+  on public.project_universe(x_followers desc);
 
 create index if not exists project_universe_updated_at_idx
   on public.project_universe(updated_at desc);
