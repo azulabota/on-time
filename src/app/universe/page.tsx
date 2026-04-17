@@ -41,7 +41,7 @@ export default async function UniversePage() {
 
   if (!supabase) {
     return (
-      <main className="min-h-screen bg-zinc-950 text-zinc-100">
+      <main className="flex-1">
         <div className="mx-auto max-w-3xl px-4 py-10">
           <h1 className="text-2xl font-semibold">Project Universe (1M–20M cap)</h1>
           <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 text-sm text-zinc-300">
@@ -61,7 +61,7 @@ export default async function UniversePage() {
   const rows = (data ?? []) as ProjectUniverseItem[];
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-100">
+    <main className="flex-1">
       <div className="mx-auto max-w-6xl px-4 py-10">
         <div className="flex items-baseline justify-between gap-4">
           <div>

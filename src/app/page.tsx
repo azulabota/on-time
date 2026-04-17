@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-100">
+    <main className="flex-1">
       <div className="mx-auto max-w-5xl px-4 py-10">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -10,12 +10,9 @@ export default function Home() {
             <img src="/branding/ontime-mark-yellow.svg" alt="OnTime" className="h-9 w-9" />
             <div>
               <h1 className="text-2xl font-semibold leading-tight">OnTime</h1>
-              <div className="text-sm text-zinc-400">A product by OnStx</div>
+              <div className="text-sm text-zinc-400">Public research dashboard</div>
             </div>
           </div>
-
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/branding/onstx.svg" alt="OnStx" className="h-7 opacity-90" />
         </div>
 
         <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-4">

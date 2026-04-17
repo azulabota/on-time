@@ -9,7 +9,7 @@ export default async function LaunchesPage() {
 
   if (!supabase) {
     return (
-      <main className="min-h-screen bg-zinc-950 text-zinc-100">
+      <main className="flex-1">
         <div className="mx-auto max-w-3xl px-4 py-10">
           <h1 className="text-2xl font-semibold">New projects (twice weekly scan)</h1>
           <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 text-sm text-zinc-300">
@@ -29,7 +29,7 @@ export default async function LaunchesPage() {
   const rows = (data ?? []) as LaunchProject[];
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-100">
+    <main className="flex-1">
       <div className="mx-auto max-w-6xl px-4 py-10">
         <div className="flex items-baseline justify-between gap-4">
           <div>
