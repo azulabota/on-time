@@ -25,6 +25,72 @@ body {
 }
 
 /* =====================
+   ON Hero
+   ===================== */
+
+.on-gradient-text {
+  background: linear-gradient(90deg, #00fcc6 0%, #f1ab29 45%, #7248c6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.on-hero-glow {
+  background:
+    radial-gradient(700px 240px at 20% 20%, rgba(0, 252, 198, 0.18), rgba(0, 0, 0, 0) 65%),
+    radial-gradient(700px 240px at 80% 25%, rgba(241, 171, 41, 0.16), rgba(0, 0, 0, 0) 65%),
+    radial-gradient(700px 260px at 55% 85%, rgba(114, 72, 198, 0.16), rgba(0, 0, 0, 0) 65%);
+  opacity: 1;
+}
+
+/* =====================
+   ON Buttons
+   ===================== */
+
+.on-btn {
+  overflow: hidden;
+}
+
+.on-btn-primary {
+  background: linear-gradient(90deg, #00fcc6 0%, #f1ab29 45%, #7248c6 100%);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.on-btn-primary:hover {
+  filter: brightness(1.04);
+}
+
+.on-btn-ripple {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.18) 35%, rgba(255, 255, 255, 0) 70%);
+  animation: onBtnRipple 650ms ease-out forwards;
+}
+
+@keyframes onBtnRipple {
+  0% {
+    opacity: 0.0;
+    width: 10px;
+    height: 10px;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    width: 420px;
+    height: 420px;
+  }
+}
+
+/* =====================
    ON Grid Background
    ===================== */
 
