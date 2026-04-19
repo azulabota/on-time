@@ -25,25 +25,31 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const Bg = require("@/components/OnGridBackground").default;
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const Sound = require("@/components/sound");
+
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-zinc-950 text-zinc-100">
-        {/* Background (interactive grid) */}
-        <div className="fixed inset-0 z-0">
-          {/* This is a client component (required dynamically here) */}
-          {(() => {
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const Bg = require("@/components/OnGridBackground").default;
-            return <Bg />;
-          })()}
-        </div>
+        <Sound.SoundProvider>
+          {/* Background (interactive grid) */}
+          <div className="fixed inset-0 z-0">
+            <Bg />
+          </div>
 
-        <div className="relative z-10 flex-1">{children}</div>
+          {/* Sound toggle */}
+          <div className="fixed right-4 top-4 z-20">
+            <Sound.SoundToggle />
+          </div>
 
-        <footer className="relative z-10 border-t border-zinc-800/80">
+          <div className="relative z-10 flex-1">{children}</div>
+
+          <footer className="relative z-10 border-t border-zinc-800/80">
           <div className="mx-auto max-w-6xl px-4 py-6 flex items-center justify-between gap-4">
             <div className="text-xs text-zinc-500">
               Built by
@@ -53,7 +59,8 @@ export default function RootLayout({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/branding/on-stack-v2/ON-STX-white.svg" alt="ON STX" className="h-7 opacity-90" />
           </div>
-        </footer>
+          </footer>
+        </Sound.SoundProvider>
       </body>
     </html>
   );

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRef } from "react";
+import { useSound } from "@/components/sound";
 
 type Props = {
   href: string;
@@ -12,6 +13,7 @@ type Props = {
 
 export default function OnButton({ href, children, variant = "primary", className = "" }: Props) {
   const ref = useRef<HTMLAnchorElement | null>(null);
+  const sound = useSound();
 
   function spawnRipple(ev: React.PointerEvent) {
     const el = ref.current;
@@ -52,6 +54,7 @@ export default function OnButton({ href, children, variant = "primary", classNam
         // left click / tap only
         // @ts-ignore
         if (ev.button !== undefined && ev.button !== 0) return;
+        sound?.click();
         spawnRipple(ev);
       }}
       className={`${base} ${styles} ${className}`}

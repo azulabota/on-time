@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSound } from "@/components/sound";
 
 type Props = {
   cellSize?: number; // px
@@ -21,6 +22,7 @@ function debounce<T extends (...args: any[]) => void>(fn: T, ms: number) {
 
 export default function OnGridBackground({ cellSize = 58, className = "" }: Props) {
   const hostRef = useRef<HTMLDivElement | null>(null);
+  const sound = useSound();
   const [dims, setDims] = useState({ w: 0, h: 0 });
 
   useEffect(() => {
@@ -91,6 +93,7 @@ export default function OnGridBackground({ cellSize = 58, className = "" }: Prop
             onPointerDown={(ev) => {
               // Left click/tap only
               if ((ev as any).button !== undefined && (ev as any).button !== 0) return;
+              sound?.click();
               spawnRipple(ev);
             }}
           />
