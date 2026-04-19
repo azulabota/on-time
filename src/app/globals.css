@@ -28,20 +28,200 @@ body {
    ON Hero
    ===================== */
 
-.on-gradient-text {
-  background: linear-gradient(90deg, #00fcc6 0%, #f1ab29 45%, #7248c6 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
 .on-hero-glow {
   background:
-    radial-gradient(700px 240px at 20% 20%, rgba(0, 252, 198, 0.18), rgba(0, 0, 0, 0) 65%),
-    radial-gradient(700px 240px at 80% 25%, rgba(241, 171, 41, 0.16), rgba(0, 0, 0, 0) 65%),
-    radial-gradient(700px 260px at 55% 85%, rgba(114, 72, 198, 0.16), rgba(0, 0, 0, 0) 65%);
+    radial-gradient(700px 240px at 20% 20%, rgba(0, 252, 198, 0.16), rgba(0, 0, 0, 0) 65%),
+    radial-gradient(700px 240px at 80% 25%, rgba(241, 171, 41, 0.14), rgba(0, 0, 0, 0) 65%),
+    radial-gradient(700px 260px at 55% 85%, rgba(114, 72, 198, 0.14), rgba(0, 0, 0, 0) 65%);
   opacity: 1;
 }
+
+.on-hero-radar {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 60%),
+    radial-gradient(circle at 50% 50%, rgba(0, 252, 198, 0.08), rgba(0, 0, 0, 0) 62%);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  overflow: hidden;
+}
+
+.on-hero-radar-sweep {
+  position: absolute;
+  inset: -60px;
+  background: conic-gradient(from 0deg, rgba(0,0,0,0) 0deg, rgba(0,252,198,0.22) 25deg, rgba(0,0,0,0) 55deg, rgba(0,0,0,0) 360deg);
+  animation: onRadar 2.4s linear infinite;
+}
+
+@keyframes onRadar {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.on-hero-radar-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 18px rgba(255,255,255,0.12);
+}
+
+.on-hero-radar-dot.d1 { left: 20%; top: 30%; }
+.on-hero-radar-dot.d2 { left: 62%; top: 22%; }
+.on-hero-radar-dot.d3 { left: 72%; top: 58%; }
+.on-hero-radar-dot.d4 { left: 38%; top: 68%; }
+.on-hero-radar-dot.d5 { left: 52%; top: 46%; }
+
+.on-hero-radar-gem {
+  position: absolute;
+  left: 70%;
+  top: 34%;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(241, 171, 41, 0.9);
+  box-shadow: 0 0 22px rgba(241, 171, 41, 0.55);
+  animation: onGemPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes onGemPulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.35); opacity: 1; }
+}
+
+/* tiles */
+.on-tile-glow {
+  background: radial-gradient(500px 220px at 20% 20%, rgba(0, 252, 198, 0.14), rgba(0,0,0,0) 60%);
+}
+.on-tile-glow-2 {
+  background: radial-gradient(520px 240px at 80% 25%, rgba(114, 72, 198, 0.14), rgba(0,0,0,0) 62%);
+}
+
+.on-tile-magnifier {
+  position: relative;
+  width: 220px;
+  height: 180px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.15);
+  overflow: hidden;
+}
+
+.on-tile-magnifier-glass {
+  position: absolute;
+  left: 48px;
+  top: 42px;
+  width: 84px;
+  height: 84px;
+  border-radius: 999px;
+  border: 2px solid rgba(255,255,255,0.22);
+  box-shadow: inset 0 0 0 6px rgba(255,255,255,0.04);
+}
+
+.on-tile-magnifier-handle {
+  position: absolute;
+  left: 118px;
+  top: 118px;
+  width: 64px;
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.18);
+  transform: rotate(35deg);
+}
+
+.on-tile-magnifier-scan {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,252,198,0.14) 45%, rgba(0,0,0,0) 80%);
+  animation: onScan 2.2s ease-in-out infinite;
+  mix-blend-mode: screen;
+  opacity: 0.8;
+}
+
+@keyframes onScan {
+  0% { transform: translateX(-65%); }
+  50% { transform: translateX(15%); }
+  100% { transform: translateX(65%); }
+}
+
+.on-tile-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.22);
+}
+.on-tile-dot.a { left: 22px; top: 30px; }
+.on-tile-dot.b { left: 60px; top: 98px; }
+.on-tile-dot.c { left: 150px; top: 46px; }
+.on-tile-dot.d { left: 168px; top: 108px; }
+.on-tile-dot.e { left: 112px; top: 72px; }
+.on-tile-dot.gem {
+  left: 150px;
+  top: 72px;
+  background: rgba(241, 171, 41, 0.95);
+  box-shadow: 0 0 18px rgba(241,171,41,0.55);
+  animation: onGemPulse 1.6s ease-in-out infinite;
+}
+
+.on-tile-ticker {
+  position: relative;
+  width: 240px;
+  height: 180px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.15);
+  overflow: hidden;
+}
+
+.on-tile-row {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.12);
+  animation: onRow 1.8s ease-in-out infinite;
+}
+
+.on-tile-row::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 34%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(114,72,198,0.0), rgba(114,72,198,0.35), rgba(114,72,198,0.0));
+  animation: onRowGlow 1.6s ease-in-out infinite;
+}
+
+@keyframes onRow {
+  0% { transform: translateY(220px); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translateY(-60px); opacity: 1; }
+}
+
+@keyframes onRowGlow {
+  0%, 100% { transform: translateX(-10%); opacity: 0.55; }
+  50% { transform: translateX(190%); opacity: 0.85; }
+}
+
+.on-tile-row.r1 { top: 22px; animation-delay: 0.0s; }
+.on-tile-row.r2 { top: 44px; animation-delay: 0.15s; }
+.on-tile-row.r3 { top: 66px; animation-delay: 0.3s; }
+.on-tile-row.r4 { top: 88px; animation-delay: 0.45s; }
+.on-tile-row.r5 { top: 110px; animation-delay: 0.6s; }
+.on-tile-row.r6 { top: 132px; animation-delay: 0.75s; }
+.on-tile-row.r7 { top: 154px; animation-delay: 0.9s; }
+.on-tile-row.r8 { top: 176px; animation-delay: 1.05s; }
+.on-tile-row.r9 { top: 198px; animation-delay: 1.2s; }
 
 /* =====================
    ON Buttons
@@ -102,7 +282,7 @@ body {
 }
 
 .on-grid {
-  --size: var(--on-cell-size, 58px);
+  --size: var(--on-cell-size, 32px);
   width: max-content;
   height: max-content;
 
@@ -114,9 +294,9 @@ body {
   display: grid;
   grid-template-columns: repeat(var(--on-cols), var(--size));
   grid-template-rows: repeat(var(--on-rows), var(--size));
-  gap: 18px;
+  gap: 10px;
 
-  padding: 52px;
+  padding: 34px;
 }
 
 .on-cell {

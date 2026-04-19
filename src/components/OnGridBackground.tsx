@@ -20,7 +20,7 @@ function debounce<T extends (...args: any[]) => void>(fn: T, ms: number) {
   };
 }
 
-export default function OnGridBackground({ cellSize = 58, className = "" }: Props) {
+export default function OnGridBackground({ cellSize = 32, className = "" }: Props) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const sound = useSound();
   const [dims, setDims] = useState({ w: 0, h: 0 });
