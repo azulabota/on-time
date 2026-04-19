@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OnTime",
-  description: "OnTime 1M20M universe, microcaps, and twice-weekly new project scans.",
+  title: "ON TRACKER",
+  description: "ON TRACKER — $500k–$20M universe, microcaps, and twice-weekly new project scans.",
 };
 
 export default function RootLayout({
@@ -34,11 +34,11 @@ export default function RootLayout({
           <div className="mx-auto max-w-6xl px-4 py-6 flex items-center justify-between gap-4">
             <div className="text-xs text-zinc-500">
               Built by
-              <span className="text-zinc-300"> OnStx</span>
+              <span className="text-zinc-300"> ON STX</span>
             </div>
 
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/branding/onstx.svg" alt="OnStx" className="h-7 opacity-90" />
+            <img src="/branding/on-stack-v2/ON-STX-white.svg" alt="ON STX" className="h-7 opacity-90" />
           </div>
         </footer>
       </body>

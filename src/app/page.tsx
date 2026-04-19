@@ -7,9 +7,9 @@ export default function Home() {
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/branding/ontime-mark-yellow.svg" alt="OnTime" className="h-9 w-9" />
+            <img src="/branding/on-stack-v2/ON-white.svg" alt="ON" className="h-9 w-9" />
             <div>
-              <h1 className="text-2xl font-semibold leading-tight">OnTime</h1>
+              <h1 className="text-2xl font-semibold leading-tight">ON TRACKER</h1>
               <div className="text-sm text-zinc-400">Public research dashboard</div>
             </div>
           </div>
@@ -36,7 +36,7 @@ export default function Home() {
             href="/universe"
             className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 hover:bg-zinc-900/70"
           >
-            <div className="text-lg font-medium">Project Universe (1M–20M cap)</div>
+            <div className="text-lg font-medium">Project Universe ($500k–$20M cap)</div>
             <div className="mt-2 text-sm text-zinc-400">Seed list + metered outlook score.</div>
           </Link>
 
