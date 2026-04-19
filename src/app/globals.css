@@ -32,13 +32,13 @@ body {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  opacity: 0.9;
+  opacity: 1;
 }
 
 .on-grid {
   --size: var(--on-cell-size, 58px);
-  width: calc(var(--on-cols) * var(--size));
-  height: calc(var(--on-rows) * var(--size));
+  width: max-content;
+  height: max-content;
 
   position: absolute;
   left: 50%;
@@ -48,9 +48,9 @@ body {
   display: grid;
   grid-template-columns: repeat(var(--on-cols), var(--size));
   grid-template-rows: repeat(var(--on-rows), var(--size));
-  gap: 14px;
+  gap: 18px;
 
-  padding: 44px;
+  padding: 52px;
 }
 
 .on-cell {
@@ -59,8 +59,8 @@ body {
   height: var(--size);
   border-radius: 9999px;
 
-  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01) 45%, rgba(0, 0, 0, 0) 70%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02) 45%, rgba(0, 0, 0, 0) 70%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
 
   transition:
     transform 120ms ease,
@@ -115,7 +115,7 @@ body {
   position: absolute;
   inset: -2px;
   background:
-    radial-gradient(1200px 700px at 50% 40%, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.38) 55%, rgba(0, 0, 0, 0.7) 100%),
-    radial-gradient(900px 500px at 50% 80%, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.42) 65%, rgba(0, 0, 0, 0.78) 100%);
+    radial-gradient(1200px 700px at 50% 40%, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.28) 55%, rgba(0, 0, 0, 0.55) 100%),
+    radial-gradient(900px 500px at 50% 80%, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.32) 65%, rgba(0, 0, 0, 0.65) 100%);
   pointer-events: none;
 }
