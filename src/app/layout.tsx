@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
+// Client background component is dynamically required inside RootLayout to avoid
+// Next server/client boundary warnings in some setups.
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -28,9 +31,19 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-zinc-950 text-zinc-100">
-        <div className="flex-1">{children}</div>
+        {/* Background (interactive grid) */}
+        <div className="fixed inset-0 z-0">
+          {/* This is a client component (required dynamically here) */}
+          {(() => {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const Bg = require("@/components/OnGridBackground").default;
+            return <Bg />;
+          })()}
+        </div>
 
-        <footer className="border-t border-zinc-800/80">
+        <div className="relative z-10 flex-1">{children}</div>
+
+        <footer className="relative z-10 border-t border-zinc-800/80">
           <div className="mx-auto max-w-6xl px-4 py-6 flex items-center justify-between gap-4">
             <div className="text-xs text-zinc-500">
               Built by
