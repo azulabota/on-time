@@ -20,8 +20,7 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  /* Tailwind v4 uses low-specificity selectors; avoid overriding utility classes here. */
   font-family: Arial, Helvetica, sans-serif;
 }
 
