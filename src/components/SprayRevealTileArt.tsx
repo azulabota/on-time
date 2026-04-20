@@ -127,6 +127,7 @@ export default function SprayRevealTileArt({
   const splatsRef = useRef<Splat[]>([]);
   const pointerRef = useRef<{ x: number; y: number; active: boolean; pointerType: string }>({ x: 0.5, y: 0.5, active: false, pointerType: "mouse" });
   const paintingRef = useRef<boolean>(false);
+  const trailRef = useRef<Array<{ x: number; y: number; t0: number }>>([]);
   const reduced = useMemo(() => prefersReducedMotion(), []);
 
   const [activated, setActivated] = useState(false);
@@ -175,6 +176,10 @@ export default function SprayRevealTileArt({
       // Age out splats (keep MUCH longer — user requested persistent paint)
       const TTL_MS = 30000; // ms
       splatsRef.current = splatsRef.current.filter((s) => t - s.t0 < TTL_MS);
+
+      // Age out magnifier trail
+      const TRAIL_TTL_MS = 9000;
+      trailRef.current = trailRef.current.filter((p) => t - p.t0 < TRAIL_TTL_MS);
 
       ctx.clearRect(0, 0, w, h);
 
@@ -228,6 +233,34 @@ export default function SprayRevealTileArt({
           ctx.arc(gx, gy, gr, 0, Math.PI * 2);
           ctx.fill();
         }
+      }
+
+      // Magnifier trail streak (only when user is actively using gem hunter)
+      if (variant === "gems" && activated && trailRef.current.length > 1) {
+        ctx.save();
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+
+        for (let i = 1; i < trailRef.current.length; i++) {
+          const a = trailRef.current[i - 1];
+          const b = trailRef.current[i];
+          const age = (t - b.t0) / 9000;
+          const alpha = Math.max(0, 0.18 * (1 - age));
+          if (alpha <= 0.001) continue;
+
+          const grad = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
+          grad.addColorStop(0, `rgba(0,252,198,${alpha})`);
+          grad.addColorStop(0.5, `rgba(241,171,41,${alpha})`);
+          grad.addColorStop(1, `rgba(114,72,198,${alpha})`);
+
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = 18 * dpr;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+        ctx.restore();
       }
 
       // Idle animation (different per tile) until user interacts
@@ -364,19 +397,56 @@ export default function SprayRevealTileArt({
           return v;
         };
 
-        // Draw faint scanning reticle (when pointer is active)
+        // Pointer effect (magnifier for gems; reticle for tracker)
         const ptr = pointerRef.current;
         if (ptr.active) {
           const px = ptr.x * w;
           const py = ptr.y * h;
-          ctx.strokeStyle = "rgba(255,255,255,0.12)";
-          ctx.lineWidth = 1 * dpr;
-          ctx.beginPath();
-          ctx.arc(px, py, 26 * dpr, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.arc(px, py, 10 * dpr, 0, Math.PI * 2);
-          ctx.stroke();
+
+          if (variant === "gems") {
+            const R = Math.min(w, h) * 0.16;
+
+            // lens
+            ctx.save();
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = "rgba(0,0,0,0.10)";
+            ctx.beginPath();
+            ctx.arc(px, py, R, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = "rgba(255,255,255,0.20)";
+            ctx.lineWidth = 2 * dpr;
+            ctx.beginPath();
+            ctx.arc(px, py, R, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // highlight
+            const hg = ctx.createRadialGradient(px - R * 0.25, py - R * 0.25, 0, px, py, R);
+            hg.addColorStop(0, "rgba(255,255,255,0.10)");
+            hg.addColorStop(1, "rgba(255,255,255,0.0)");
+            ctx.fillStyle = hg;
+            ctx.beginPath();
+            ctx.arc(px, py, R, 0, Math.PI * 2);
+            ctx.fill();
+
+            // handle
+            ctx.strokeStyle = "rgba(255,255,255,0.16)";
+            ctx.lineWidth = 5 * dpr;
+            ctx.beginPath();
+            ctx.moveTo(px + R * 0.65, py + R * 0.65);
+            ctx.lineTo(px + R * 1.35, py + R * 1.35);
+            ctx.stroke();
+            ctx.restore();
+          } else {
+            ctx.strokeStyle = "rgba(255,255,255,0.12)";
+            ctx.lineWidth = 1 * dpr;
+            ctx.beginPath();
+            ctx.arc(px, py, 26 * dpr, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(px, py, 10 * dpr, 0, Math.PI * 2);
+            ctx.stroke();
+          }
         }
 
         for (const it of revealablesPx) {
@@ -473,6 +543,19 @@ export default function SprayRevealTileArt({
     // Desktop: spray on hover. Mobile: only spray while pressing/dragging.
     if ((isMouse && activated) || paintingRef.current) {
       addSprayAtPointer();
+
+      // For gem hunter: leave a gradient trail behind the magnifier
+      if (variant === "gems") {
+        const canvas = canvasRef.current;
+        if (canvas) {
+          trailRef.current.push({
+            x: pointerRef.current.x * canvas.width,
+            y: pointerRef.current.y * canvas.height,
+            t0: performance.now(),
+          });
+          if (trailRef.current.length > 90) trailRef.current.splice(0, trailRef.current.length - 90);
+        }
+      }
     }
   };
 
