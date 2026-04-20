@@ -1,5 +1,5 @@
 "use client";
-
+import OnTrackerLogoPaintReveal from "@/components/OnTrackerLogoPaintReveal";
 
 export default function Hero() {
 
@@ -10,8 +10,8 @@ export default function Hero() {
       <div className="relative z-10 grid grid-cols-1 gap-6 md:grid-cols-12 md:items-center">
         <div className="md:col-span-7">
           <div className="flex items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/branding/on-stack-v2/ON-TRACKER-white.svg" alt="ON TRACKER" className="h-8 md:h-10" />
+            <OnTrackerLogoPaintReveal />
+            <div className="text-xs text-zinc-500 hidden sm:block">hover to reveal</div>
           </div>
 
           <h1 className="mt-4 text-3xl font-semibold leading-tight md:text-5xl">

@@ -271,6 +271,81 @@ body {
 }
 
 /* =====================
+   ON Logo Paint Reveal
+   ===================== */
+
+.on-logo-paint-wrap {
+  position: relative;
+  height: 100%;
+  width: auto;
+  overflow: hidden;
+
+  /* start hidden */
+  opacity: 0;
+  clip-path: inset(0 100% 0 0);
+}
+
+.on-logo-paint-wrap.is-revealed {
+  opacity: 1;
+  animation: onPaintReveal 720ms ease-out forwards;
+}
+
+@keyframes onPaintReveal {
+  0% {
+    clip-path: inset(0 100% 0 0);
+    filter: blur(0.2px);
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+    filter: blur(0);
+  }
+}
+
+/* The wordmark image contains ON + TRACKER. We shift it left so only TRACKER is visible
+   inside a wrapper sized to the TRACKER portion. The fraction is based on the SVG path
+   start ~x=2530 over viewBox width 11056 -> 22.9%. */
+.on-logo-tracker-img {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: auto;
+  transform: translateX(-22.9%);
+  opacity: 0.98;
+}
+
+.on-logo-brush {
+  position: absolute;
+  top: -18%;
+  bottom: -18%;
+  width: 48%;
+  left: -60%;
+
+  /* thick brush look */
+  background:
+    radial-gradient(closest-side at 50% 50%, rgba(0, 252, 198, 0.40), rgba(0, 0, 0, 0) 70%),
+    linear-gradient(90deg, rgba(0, 252, 198, 0), rgba(241, 171, 41, 0.35), rgba(114, 72, 198, 0));
+  filter: blur(6px);
+  mix-blend-mode: screen;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.on-logo-paint-wrap.is-revealed .on-logo-brush {
+  opacity: 0.9;
+  animation: onBrushSwipe 680ms ease-out forwards;
+}
+
+@keyframes onBrushSwipe {
+  0% {
+    transform: translateX(0) rotate(-3deg);
+  }
+  100% {
+    transform: translateX(260%) rotate(2deg);
+    opacity: 0;
+  }
+}
+
+/* =====================
    ON Grid Background
    ===================== */
 
