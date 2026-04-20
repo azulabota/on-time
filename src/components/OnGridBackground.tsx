@@ -112,8 +112,18 @@ export default function OnGridBackground({ cellSize = 16, className = "" }: Prop
       }
 
       const cellPitch = cellSize + gapPx;
-      const cx = Math.floor((x - rect.left) / cellPitch);
-      const cy = Math.floor((y - rect.top) / cellPitch);
+
+      // Account for CSS padding on the grid container
+      const gx = x - rect.left - padPx;
+      const gy = y - rect.top - padPx;
+
+      if (gx < 0 || gy < 0) {
+        setHotIndex(null);
+        return;
+      }
+
+      const cx = Math.floor(gx / cellPitch);
+      const cy = Math.floor(gy / cellPitch);
 
       const i = cy * cols + cx;
       if (i < 0 || i >= count) {
@@ -142,10 +152,11 @@ export default function OnGridBackground({ cellSize = 16, className = "" }: Prop
     window.addEventListener("pointerdown", onDown, { capture: true, passive: true });
 
     return () => {
-      window.removeEventListener("pointermove", onMove, { capture: true } as any);
-      window.removeEventListener("pointerdown", onDown, { capture: true } as any);
+      // Remove with the exact capture flag
+      window.removeEventListener("pointermove", onMove, true);
+      window.removeEventListener("pointerdown", onDown, true);
     };
-  }, [cellSize, gapPx, cols, count, sound]);
+  }, [cellSize, gapPx, padPx, cols, count, sound]);
 
   return (
     <div
