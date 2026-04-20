@@ -1,29 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-const LS_KEY = "ontracker_logo_revealed_v1";
+import { useState } from "react";
 
 export default function OnTrackerLogoPaintReveal({ heightClass = "h-8 md:h-10" }: { heightClass?: string }) {
   const [revealed, setRevealed] = useState(false);
 
-  useEffect(() => {
-    try {
-      const v = localStorage.getItem(LS_KEY);
-      if (v === "1") setRevealed(true);
-    } catch {
-      // ignore
-    }
-  }, []);
-
+  // Reveal once per page load (replays every visit, not permanently stored)
   const triggerOnce = () => {
     if (revealed) return;
     setRevealed(true);
-    try {
-      localStorage.setItem(LS_KEY, "1");
-    } catch {
-      // ignore
-    }
   };
 
   return (

@@ -114,11 +114,13 @@ function drawPin(ctx: CanvasRenderingContext2D, x: number, y: number, size: numb
 export default function SprayRevealTileArt({
   className,
   revealables,
-  label,
+  variant,
 }: {
   className?: string;
   revealables: Revealable[];
-  label: string;
+  // 'gems' = microcap gem hunter
+  // 'tracker' = new project tracker
+  variant: "gems" | "tracker";
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -127,6 +129,7 @@ export default function SprayRevealTileArt({
   const paintingRef = useRef<boolean>(false);
   const reduced = useMemo(() => prefersReducedMotion(), []);
 
+  const [activated, setActivated] = useState(false);
   const [found, setFound] = useState<Record<string, number>>({}); // id -> foundAt (ms)
 
   const dprRef = useRef(1);
@@ -227,82 +230,127 @@ export default function SprayRevealTileArt({
         }
       }
 
-      // Revealables (gems/pins) — visibility based on nearby paint
-      const computeReveal = (px: number, py: number) => {
-        let v = 0;
-        for (const s of splatsRef.current) {
-          const dx = px - s.x;
-          const dy = py - s.y;
-          const d = Math.sqrt(dx * dx + dy * dy);
-          const influence = 1 - smoothstep(s.r * 0.25, s.r, d);
-          v = Math.max(v, influence);
-          if (v > 0.98) break;
-        }
-        return v;
-      };
+      // Idle animation: radar sweep until user interacts
+      if (!activated) {
+        const cx = w * 0.55;
+        const cy = h * 0.5;
+        const R = Math.min(w, h) * 0.38;
 
-      // Draw faint scanning reticle
-      const ptr = pointerRef.current;
-      if (ptr.active) {
-        const px = ptr.x * w;
-        const py = ptr.y * h;
-        ctx.strokeStyle = "rgba(255,255,255,0.12)";
+        // rings
+        ctx.strokeStyle = "rgba(255,255,255,0.08)";
         ctx.lineWidth = 1 * dpr;
-        ctx.beginPath();
-        ctx.arc(px, py, 26 * dpr, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(px, py, 10 * dpr, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-
-      for (const it of revealablesPx) {
-        const px = it.x * w;
-        const py = it.y * h;
-        const base = computeReveal(px, py);
-        const a = clamp01(base);
-        if (a <= 0.02) continue;
-
-        // mark found when mostly visible
-        if (a > 0.92 && found[it.id] == null) {
-          setFound((prev) => ({ ...prev, [it.id]: t }));
+        for (let k = 1; k <= 3; k++) {
+          ctx.beginPath();
+          ctx.arc(cx, cy, (R * k) / 3, 0, Math.PI * 2);
+          ctx.stroke();
         }
 
-        const foundAt = found[it.id];
-        const pop = foundAt != null ? clamp01(1 - (t - foundAt) / 900) : 0;
-        const size = (it.kind === "gem" ? 12 : 11) * dpr * (1 + 0.22 * pop);
+        // sweep
+        const ang = (t / 900) % (Math.PI * 2);
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(ang);
+        const grad = ctx.createLinearGradient(0, 0, R, 0);
+        grad.addColorStop(0, "rgba(0,252,198,0.0)");
+        grad.addColorStop(0.25, "rgba(0,252,198,0.10)");
+        grad.addColorStop(1, "rgba(0,252,198,0.0)");
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 2 * dpr;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(R, 0);
+        ctx.stroke();
+        ctx.restore();
 
-        const glow = it.kind === "gem" ? "rgba(0,252,198,0.85)" : "rgba(241,171,41,0.85)";
-
-        if (it.kind === "gem") {
-          drawGem(ctx, px, py, size, Math.max(a, 0.12), glow);
-        } else {
-          drawPin(ctx, px, py, size, Math.max(a, 0.12), "rgba(114,72,198,1)");
+        // idle dots
+        const dotCount = variant === "gems" ? 5 : 6;
+        for (let i = 0; i < dotCount; i++) {
+          const a = (i / dotCount) * Math.PI * 2 + (t / 1800);
+          const rr = R * (0.35 + 0.55 * ((i % 3) / 3));
+          const dx = cx + Math.cos(a) * rr;
+          const dy = cy + Math.sin(a) * rr;
+          ctx.fillStyle = variant === "gems" ? "rgba(241,171,41,0.35)" : "rgba(114,72,198,0.32)";
+          ctx.beginPath();
+          ctx.arc(dx, dy, 3.2 * dpr, 0, Math.PI * 2);
+          ctx.fill();
         }
 
-        // glint
-        if (a > 0.9) {
-          ctx.save();
-          ctx.globalAlpha = 0.25 * a;
-          ctx.strokeStyle = "rgba(255,255,255,0.55)";
+        // subtle hint (no text)   a pulsing dot at bottom-right
+        const ph = 0.5 + 0.5 * Math.sin(t / 500);
+        ctx.fillStyle = `rgba(255,255,255,${0.10 + 0.15 * ph})`;
+        ctx.beginPath();
+        ctx.arc(w - 14 * dpr, h - 14 * dpr, 3.3 * dpr, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        // Revealables (gems/pins)   visibility based on nearby paint
+        const computeReveal = (px: number, py: number) => {
+          let v = 0;
+          for (const s of splatsRef.current) {
+            const dx = px - s.x;
+            const dy = py - s.y;
+            const d = Math.sqrt(dx * dx + dy * dy);
+            const influence = 1 - smoothstep(s.r * 0.25, s.r, d);
+            v = Math.max(v, influence);
+            if (v > 0.98) break;
+          }
+          return v;
+        };
+
+        // Draw faint scanning reticle (when pointer is active)
+        const ptr = pointerRef.current;
+        if (ptr.active) {
+          const px = ptr.x * w;
+          const py = ptr.y * h;
+          ctx.strokeStyle = "rgba(255,255,255,0.12)";
           ctx.lineWidth = 1 * dpr;
           ctx.beginPath();
-          ctx.moveTo(px - size * 1.3, py);
-          ctx.lineTo(px + size * 1.3, py);
-          ctx.moveTo(px, py - size * 1.3);
-          ctx.lineTo(px, py + size * 1.3);
+          ctx.arc(px, py, 26 * dpr, 0, Math.PI * 2);
           ctx.stroke();
-          ctx.restore();
+          ctx.beginPath();
+          ctx.arc(px, py, 10 * dpr, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        for (const it of revealablesPx) {
+          const px = it.x * w;
+          const py = it.y * h;
+          const base = computeReveal(px, py);
+          const a = clamp01(base);
+          if (a <= 0.02) continue;
+
+          // mark found when mostly visible
+          if (a > 0.92 && found[it.id] == null) {
+            setFound((prev) => ({ ...prev, [it.id]: t }));
+          }
+
+          const foundAt = found[it.id];
+          const pop = foundAt != null ? clamp01(1 - (t - foundAt) / 900) : 0;
+          const size = (it.kind === "gem" ? 12 : 11) * dpr * (1 + 0.22 * pop);
+
+          const glow = it.kind === "gem" ? "rgba(0,252,198,0.85)" : "rgba(241,171,41,0.85)";
+
+          if (it.kind === "gem") {
+            drawGem(ctx, px, py, size, Math.max(a, 0.12), glow);
+          } else {
+            drawPin(ctx, px, py, size, Math.max(a, 0.12), "rgba(114,72,198,1)");
+          }
+
+          // glint
+          if (a > 0.9) {
+            ctx.save();
+            ctx.globalAlpha = 0.25 * a;
+            ctx.strokeStyle = "rgba(255,255,255,0.55)";
+            ctx.lineWidth = 1 * dpr;
+            ctx.beginPath();
+            ctx.moveTo(px - size * 1.3, py);
+            ctx.lineTo(px + size * 1.3, py);
+            ctx.moveTo(px, py - size * 1.3);
+            ctx.lineTo(px, py + size * 1.3);
+            ctx.stroke();
+            ctx.restore();
+          }
         }
       }
-
-      // label
-      ctx.save();
-      ctx.globalAlpha = 0.6;
-      ctx.fillStyle = "rgba(255,255,255,0.65)";
-      ctx.font = `${12 * dpr}px ui-sans-serif, system-ui, -apple-system`;
-      ctx.fillText(label, 12 * dpr, h - 14 * dpr);
-      ctx.restore();
 
       ctx.restore();
 
@@ -314,7 +362,7 @@ export default function SprayRevealTileArt({
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reduced, label]);
+  }, [reduced, activated, found, variant]);
 
   const addSprayAtPointer = () => {
     const canvas = canvasRef.current;
@@ -350,14 +398,63 @@ export default function SprayRevealTileArt({
 
     if (reduced) return;
 
-    // Desktop: spray on hover. Mobile: only spray while pressing/dragging.
+    // Start reveal on first hover/move for mouse users (matches your request)
     const isMouse = (e.pointerType || "mouse") === "mouse";
-    if (isMouse || paintingRef.current) {
+    if (isMouse) activate();
+
+    // Desktop: spray on hover. Mobile: only spray while pressing/dragging.
+    if ((isMouse && activated) || paintingRef.current) {
       addSprayAtPointer();
     }
   };
 
+  const revealBurst = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const dpr = dprRef.current;
+    const now = performance.now();
+
+    const w = canvas.width;
+    const h = canvas.height;
+
+    // Big splats around each revealable so it fully uncovers quickly
+    for (const it of revealables) {
+      const px = it.x * w;
+      const py = it.y * h;
+      for (let k = 0; k < 6; k++) {
+        const ang = (k / 6) * Math.PI * 2;
+        const off = (14 + Math.random() * 10) * dpr;
+        const sx = px + Math.cos(ang) * off;
+        const sy = py + Math.sin(ang) * off;
+        const r = (42 + Math.random() * 26) * dpr;
+        const hex = PALETTE[Math.floor(Math.random() * PALETTE.length)];
+        const color = `rgb(${parseInt(hex.slice(1, 3), 16)},${parseInt(hex.slice(3, 5), 16)},${parseInt(hex.slice(5, 7), 16)})`;
+        splatsRef.current.push({ x: sx, y: sy, t0: now, r, color });
+      }
+    }
+
+    // extra wash so the background feels painted
+    for (let i = 0; i < 10; i++) {
+      const sx = (0.15 + Math.random() * 0.7) * w;
+      const sy = (0.2 + Math.random() * 0.6) * h;
+      const r = (54 + Math.random() * 42) * dpr;
+      const hex = PALETTE[Math.floor(Math.random() * PALETTE.length)];
+      const color = `rgb(${parseInt(hex.slice(1, 3), 16)},${parseInt(hex.slice(3, 5), 16)},${parseInt(hex.slice(5, 7), 16)})`;
+      splatsRef.current.push({ x: sx, y: sy, t0: now, r, color });
+    }
+
+    if (splatsRef.current.length > 360) splatsRef.current.splice(0, splatsRef.current.length - 360);
+  };
+
+  const activate = () => {
+    if (activated) return;
+    setActivated(true);
+    // Immediately uncover on first interaction
+    revealBurst();
+  };
+
   const onPointerDown = (e: React.PointerEvent) => {
+    activate();
     paintingRef.current = true;
     onPointerMove(e);
   };

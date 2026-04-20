@@ -7,7 +7,7 @@ function MicrocapTile() {
   return (
     <div className="rounded-2xl border border-zinc-800 bg-zinc-950/30 p-6 overflow-hidden relative">
       <div className="pointer-events-none absolute inset-0 on-tile-glow" />
-      <div className="relative z-10 flex items-start justify-between gap-6">
+      <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
         <div>
           <div className="text-sm font-semibold">Microcap Gem Tracker</div>
           <div className="mt-2 text-sm text-zinc-300 max-w-md">
@@ -24,10 +24,10 @@ function MicrocapTile() {
           </div>
         </div>
 
-        <div className="mt-5 w-full md:mt-0 md:w-auto">
+        <div className="w-full md:w-auto">
           <div className="h-[170px] w-full rounded-2xl border border-zinc-800 bg-zinc-950/40 overflow-hidden md:h-[220px] md:w-[320px]">
             <SprayRevealTileArt
-              label="SPRAY TO REVEAL"
+              variant="gems"
               revealables={[
                 { id: "g1", x: 0.22, y: 0.32, kind: "gem" },
                 { id: "g2", x: 0.38, y: 0.58, kind: "gem" },
@@ -47,11 +47,11 @@ function NewProjectsTile() {
   return (
     <div className="rounded-2xl border border-zinc-800 bg-zinc-950/30 p-6 overflow-hidden relative">
       <div className="pointer-events-none absolute inset-0 on-tile-glow-2" />
-      <div className="relative z-10 flex items-start justify-between gap-6">
+      <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
         <div>
           <div className="text-sm font-semibold">New Project Tracker</div>
           <div className="mt-2 text-sm text-zinc-300 max-w-md">
-            Fresh listings from CoinGecko + CoinMarketCap (official API). De-duped so you see what’s actually new.
+            Fresh new projects from free sources (DexScreener + GeckoTerminal + DeFiLlama). De-duped so you see what’s actually new.
           </div>
           <div className="mt-4 flex flex-wrap gap-2 text-[11px] text-zinc-400">
             <span className="rounded-full border border-zinc-800 bg-zinc-950/30 px-2 py-1">New listings</span>
@@ -64,10 +64,10 @@ function NewProjectsTile() {
           </div>
         </div>
 
-        <div className="mt-5 w-full md:mt-0 md:w-auto">
+        <div className="w-full md:w-auto">
           <div className="h-[170px] w-full rounded-2xl border border-zinc-800 bg-zinc-950/40 overflow-hidden md:h-[220px] md:w-[320px]">
             <SprayRevealTileArt
-              label="SCAN FOR NEW"
+              variant="tracker"
               revealables={[
                 { id: "p1", x: 0.25, y: 0.30, kind: "pin" },
                 { id: "p2", x: 0.48, y: 0.44, kind: "pin" },

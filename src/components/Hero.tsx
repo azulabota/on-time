@@ -11,7 +11,6 @@ export default function Hero() {
         <div className="md:col-span-7">
           <div className="flex items-center gap-3">
             <OnTrackerLogoPaintReveal />
-            <div className="text-xs text-zinc-500 hidden sm:block">hover to reveal</div>
           </div>
 
           <h1 className="mt-4 text-3xl font-semibold leading-tight md:text-5xl">
