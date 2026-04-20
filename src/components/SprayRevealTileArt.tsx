@@ -230,54 +230,122 @@ export default function SprayRevealTileArt({
         }
       }
 
-      // Idle animation: radar sweep until user interacts
+      // Idle animation (different per tile) until user interacts
       if (!activated) {
-        const cx = w * 0.55;
-        const cy = h * 0.5;
-        const R = Math.min(w, h) * 0.38;
+        if (variant === "gems") {
+          // Magnifier scan idle
+          const cx = w * 0.62;
+          const cy = h * 0.50;
+          const R = Math.min(w, h) * 0.30;
 
-        // rings
-        ctx.strokeStyle = "rgba(255,255,255,0.08)";
-        ctx.lineWidth = 1 * dpr;
-        for (let k = 1; k <= 3; k++) {
+          // lens
+          ctx.save();
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = "rgba(0,0,0,0.10)";
           ctx.beginPath();
-          ctx.arc(cx, cy, (R * k) / 3, 0, Math.PI * 2);
-          ctx.stroke();
-        }
-
-        // sweep
-        const ang = (t / 900) % (Math.PI * 2);
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(ang);
-        const grad = ctx.createLinearGradient(0, 0, R, 0);
-        grad.addColorStop(0, "rgba(0,252,198,0.0)");
-        grad.addColorStop(0.25, "rgba(0,252,198,0.10)");
-        grad.addColorStop(1, "rgba(0,252,198,0.0)");
-        ctx.strokeStyle = grad;
-        ctx.lineWidth = 2 * dpr;
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(R, 0);
-        ctx.stroke();
-        ctx.restore();
-
-        // idle dots
-        const dotCount = variant === "gems" ? 5 : 6;
-        for (let i = 0; i < dotCount; i++) {
-          const a = (i / dotCount) * Math.PI * 2 + (t / 1800);
-          const rr = R * (0.35 + 0.55 * ((i % 3) / 3));
-          const dx = cx + Math.cos(a) * rr;
-          const dy = cy + Math.sin(a) * rr;
-          ctx.fillStyle = variant === "gems" ? "rgba(241,171,41,0.35)" : "rgba(114,72,198,0.32)";
-          ctx.beginPath();
-          ctx.arc(dx, dy, 3.2 * dpr, 0, Math.PI * 2);
+          ctx.arc(cx, cy, R, 0, Math.PI * 2);
           ctx.fill();
+
+          ctx.strokeStyle = "rgba(255,255,255,0.16)";
+          ctx.lineWidth = 2 * dpr;
+          ctx.beginPath();
+          ctx.arc(cx, cy, R, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // handle
+          ctx.translate(cx + R * 0.65, cy + R * 0.65);
+          ctx.rotate(Math.PI / 4);
+          ctx.fillStyle = "rgba(255,255,255,0.10)";
+          ctx.strokeStyle = "rgba(255,255,255,0.18)";
+          ctx.lineWidth = 2 * dpr;
+          const hw = R * 0.9;
+          const hh = R * 0.22;
+          ctx.beginPath();
+          ctx.roundRect(0, -hh / 2, hw, hh, hh);
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+
+          // scan beam sweeping across the lens
+          const beam = (0.5 + 0.5 * Math.sin(t / 650)) * 1.2 - 0.1;
+          const bx = cx - R + beam * (2 * R);
+          const beamW = 18 * dpr;
+          const g = ctx.createLinearGradient(bx - beamW, 0, bx + beamW, 0);
+          g.addColorStop(0, "rgba(0,252,198,0)");
+          g.addColorStop(0.5, "rgba(0,252,198,0.16)");
+          g.addColorStop(1, "rgba(241,171,41,0)");
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          ctx.arc(cx, cy, R - 1 * dpr, 0, Math.PI * 2);
+          ctx.clip();
+          ctx.fillRect(bx - beamW, cy - R, beamW * 2, R * 2);
+          ctx.restore();
+
+          // faint "gems" shimmer points
+          const shimmer = 0.4 + 0.6 * Math.sin(t / 480);
+          ctx.fillStyle = `rgba(241,171,41,${0.10 + 0.10 * shimmer})`;
+          const pts = [
+            [w * 0.20, h * 0.34],
+            [w * 0.28, h * 0.68],
+            [w * 0.44, h * 0.44],
+          ];
+          for (const [x0, y0] of pts) {
+            ctx.beginPath();
+            ctx.arc(x0, y0, 2.8 * dpr, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        } else {
+          // Tracker idle: flowing listing rows + scanning highlight
+          const top = h * 0.18;
+          const rowH = 14 * dpr;
+          const gap = 9 * dpr;
+          const rowsN = 8;
+
+          // moving stack
+          const speed = 0.035 * h;
+          const yShift = ((t / 30) * speed) % (rowH + gap);
+
+          for (let i = 0; i < rowsN; i++) {
+            const y = top + i * (rowH + gap) - yShift;
+            const wRow = w * (0.55 + 0.35 * ((i % 3) / 3));
+            const x = w * 0.12;
+
+            ctx.fillStyle = "rgba(255,255,255,0.06)";
+            ctx.strokeStyle = "rgba(255,255,255,0.10)";
+            ctx.lineWidth = 1 * dpr;
+
+            ctx.beginPath();
+            ctx.roundRect(x, y, wRow, rowH, 999);
+            ctx.fill();
+            ctx.stroke();
+          }
+
+          // scanning highlight bar
+          const scanX = (0.1 + 0.8 * ((t / 900) % 1)) * w;
+          const hg = ctx.createRadialGradient(scanX, h * 0.52, 0, scanX, h * 0.52, w * 0.45);
+          hg.addColorStop(0, "rgba(114,72,198,0.10)");
+          hg.addColorStop(1, "rgba(114,72,198,0)");
+          ctx.fillStyle = hg;
+          ctx.fillRect(0, 0, w, h);
+
+          // pins faint
+          const ph = 0.5 + 0.5 * Math.sin(t / 700);
+          ctx.fillStyle = `rgba(114,72,198,${0.08 + 0.10 * ph})`;
+          const pins = [
+            [w * 0.76, h * 0.32],
+            [w * 0.70, h * 0.62],
+            [w * 0.58, h * 0.44],
+          ];
+          for (const [x0, y0] of pins) {
+            ctx.beginPath();
+            ctx.arc(x0, y0, 3.0 * dpr, 0, Math.PI * 2);
+            ctx.fill();
+          }
         }
 
-        // subtle hint (no text)   a pulsing dot at bottom-right
-        const ph = 0.5 + 0.5 * Math.sin(t / 500);
-        ctx.fillStyle = `rgba(255,255,255,${0.10 + 0.15 * ph})`;
+        // subtle hint (no text) — a pulsing dot at bottom-right
+        const ph2 = 0.5 + 0.5 * Math.sin(t / 500);
+        ctx.fillStyle = `rgba(255,255,255,${0.10 + 0.15 * ph2})`;
         ctx.beginPath();
         ctx.arc(w - 14 * dpr, h - 14 * dpr, 3.3 * dpr, 0, Math.PI * 2);
         ctx.fill();
