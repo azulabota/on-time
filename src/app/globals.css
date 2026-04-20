@@ -282,7 +282,7 @@ body {
 }
 
 .on-grid {
-  --size: var(--on-cell-size, 8px);
+  --size: var(--on-cell-size, 10px);
   --gap: var(--on-gap, 6px);
   --pad: var(--on-pad, 22px);
 
