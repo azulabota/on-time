@@ -128,6 +128,13 @@ export default function SprayRevealTileArt({
   const pointerRef = useRef<{ x: number; y: number; active: boolean; pointerType: string }>({ x: 0.5, y: 0.5, active: false, pointerType: "mouse" });
   const paintingRef = useRef<boolean>(false);
   const trailRef = useRef<Array<{ x: number; y: number; t0: number }>>([]);
+  const effectivePtrRef = useRef<{ x: number; y: number; active: boolean; locked: boolean; targetId: string | null }>({
+    x: 0.5,
+    y: 0.5,
+    active: false,
+    locked: false,
+    targetId: null,
+  });
   const reduced = useMemo(() => prefersReducedMotion(), []);
 
   const [activated, setActivated] = useState(false);
@@ -172,6 +179,45 @@ export default function SprayRevealTileArt({
       const h = canvas.height;
       const dpr = dprRef.current;
       const t = now;
+
+      // Effective pointer (adds gem "magnet/lock-on" feel)
+      const rawPtr = pointerRef.current;
+      let epx = rawPtr.x;
+      let epy = rawPtr.y;
+      let locked = false;
+      let targetId: string | null = null;
+
+      if (variant === "gems" && activated && rawPtr.active) {
+        // Find nearest gem revealable
+        let bestD2 = Infinity;
+        let best: { id: string; x: number; y: number } | null = null;
+        for (const it of revealables) {
+          if (it.kind !== "gem") continue;
+          const dx = it.x - rawPtr.x;
+          const dy = it.y - rawPtr.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < bestD2) {
+            bestD2 = d2;
+            best = it;
+          }
+        }
+
+        if (best) {
+          // Lock radius ~ 12% of the shorter side (in normalized coords)
+          const lockR = 0.12;
+          const d = Math.sqrt(bestD2);
+          if (d < lockR) {
+            locked = true;
+            targetId = best.id;
+            // Stronger pull when closer
+            const strength = 0.18 + 0.42 * (1 - d / lockR);
+            epx = epx + (best.x - epx) * strength;
+            epy = epy + (best.y - epy) * strength;
+          }
+        }
+      }
+
+      effectivePtrRef.current = { x: epx, y: epy, active: rawPtr.active, locked, targetId };
 
       // Age out splats (keep MUCH longer — user requested persistent paint)
       const TTL_MS = 30000; // ms
@@ -398,7 +444,7 @@ export default function SprayRevealTileArt({
         };
 
         // Pointer effect (magnifier for gems; reticle for tracker)
-        const ptr = pointerRef.current;
+        const ptr = effectivePtrRef.current;
         if (ptr.active) {
           const px = ptr.x * w;
           const py = ptr.y * h;
@@ -414,7 +460,7 @@ export default function SprayRevealTileArt({
             ctx.arc(px, py, R, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.strokeStyle = "rgba(255,255,255,0.20)";
+            ctx.strokeStyle = ptr.locked ? "rgba(255,255,255,0.34)" : "rgba(255,255,255,0.20)";
             ctx.lineWidth = 2 * dpr;
             ctx.beginPath();
             ctx.arc(px, py, R, 0, Math.PI * 2);
@@ -436,6 +482,17 @@ export default function SprayRevealTileArt({
             ctx.moveTo(px + R * 0.65, py + R * 0.65);
             ctx.lineTo(px + R * 1.35, py + R * 1.35);
             ctx.stroke();
+
+            // lock-on pulse ring
+            if (ptr.locked) {
+              const pulse = 0.5 + 0.5 * Math.sin(t / 170);
+              ctx.strokeStyle = `rgba(0,252,198,${0.10 + 0.16 * pulse})`;
+              ctx.lineWidth = 2 * dpr;
+              ctx.beginPath();
+              ctx.arc(px, py, R * (1.08 + 0.06 * pulse), 0, Math.PI * 2);
+              ctx.stroke();
+            }
+
             ctx.restore();
           } else {
             ctx.strokeStyle = "rgba(255,255,255,0.12)";
@@ -507,8 +564,10 @@ export default function SprayRevealTileArt({
     if (!canvas) return;
     const dpr = dprRef.current;
     const now = performance.now();
-    const px = pointerRef.current.x * canvas.width;
-    const py = pointerRef.current.y * canvas.height;
+
+    const ep = effectivePtrRef.current;
+    const px = (ep.active ? ep.x : pointerRef.current.x) * canvas.width;
+    const py = (ep.active ? ep.y : pointerRef.current.y) * canvas.height;
 
     // Add a few splats per tick
     const n = 2;
@@ -548,9 +607,12 @@ export default function SprayRevealTileArt({
       if (variant === "gems") {
         const canvas = canvasRef.current;
         if (canvas) {
+          const ep = effectivePtrRef.current;
+          const tx = (ep.active ? ep.x : pointerRef.current.x) * canvas.width;
+          const ty = (ep.active ? ep.y : pointerRef.current.y) * canvas.height;
           trailRef.current.push({
-            x: pointerRef.current.x * canvas.width,
-            y: pointerRef.current.y * canvas.height,
+            x: tx,
+            y: ty,
             t0: performance.now(),
           });
           if (trailRef.current.length > 90) trailRef.current.splice(0, trailRef.current.length - 90);
