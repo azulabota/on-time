@@ -20,8 +20,11 @@ function debounce<T extends (...args: any[]) => void>(fn: T, ms: number) {
   };
 }
 
-export default function OnGridBackground({ cellSize = 32, className = "" }: Props) {
+export default function OnGridBackground({ cellSize = 8, className = "" }: Props) {
   const hostRef = useRef<HTMLDivElement | null>(null);
+  const gridRef = useRef<HTMLDivElement | null>(null);
+  const cellsRef = useRef<Array<HTMLDivElement | null>>([]);
+  const lastHotIndexRef = useRef<number | null>(null);
   const sound = useSound();
   const [dims, setDims] = useState({ w: 0, h: 0 });
 
@@ -51,12 +54,17 @@ export default function OnGridBackground({ cellSize = 32, className = "" }: Prop
 
   const indices = useMemo(() => Array.from({ length: count }, (_, i) => i), [count]);
 
-  function spawnRipple(ev: React.PointerEvent<HTMLDivElement>) {
-    const cell = ev.currentTarget;
-    const rect = cell.getBoundingClientRect();
+  const { gapPx, padPx } = useMemo(() => {
+    // Tuned to look good when cellSize is tiny (user asked ~75% smaller again)
+    const gapPx = clamp(Math.round(cellSize * 0.65), 4, 12);
+    const padPx = clamp(Math.round(cellSize * 1.25) + 10, 14, 46);
+    return { gapPx, padPx };
+  }, [cellSize]);
 
-    const x = ev.clientX - rect.left;
-    const y = ev.clientY - rect.top;
+  function spawnRippleAt(cell: HTMLDivElement, clientX: number, clientY: number) {
+    const rect = cell.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
 
     const span = document.createElement("span");
     span.className = "on-ripple";
@@ -74,6 +82,70 @@ export default function OnGridBackground({ cellSize = 32, className = "" }: Prop
     );
   }
 
+  function setHotIndex(i: number | null) {
+    const prev = lastHotIndexRef.current;
+    if (prev != null && cellsRef.current[prev]) {
+      cellsRef.current[prev]!.classList.remove("is-hot");
+    }
+    lastHotIndexRef.current = i;
+    if (i != null && cellsRef.current[i]) {
+      cellsRef.current[i]!.classList.add("is-hot");
+    }
+  }
+
+  useEffect(() => {
+    // Make the grid feel interactive even though it's behind the app content.
+    // We listen globally (capture) and compute which cell is nearest.
+    const onMove = (ev: PointerEvent) => {
+      const grid = gridRef.current;
+      if (!grid) return;
+
+      const rect = grid.getBoundingClientRect();
+      const x = ev.clientX;
+      const y = ev.clientY;
+
+      // If pointer is nowhere near the grid, don't highlight.
+      if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+        setHotIndex(null);
+        return;
+      }
+
+      const cellPitch = cellSize + gapPx;
+      const cx = Math.floor((x - rect.left) / cellPitch);
+      const cy = Math.floor((y - rect.top) / cellPitch);
+
+      const i = cy * cols + cx;
+      if (i < 0 || i >= count) {
+        setHotIndex(null);
+        return;
+      }
+
+      setHotIndex(i);
+    };
+
+    const onDown = (ev: PointerEvent) => {
+      if (ev.button !== 0) return;
+      const i = lastHotIndexRef.current;
+      if (i == null) return;
+      const cell = cellsRef.current[i];
+      if (!cell) return;
+
+      sound?.click();
+      spawnRippleAt(cell, ev.clientX, ev.clientY);
+
+      cell.classList.add("is-pressed");
+      window.setTimeout(() => cell.classList.remove("is-pressed"), 140);
+    };
+
+    window.addEventListener("pointermove", onMove, { capture: true, passive: true });
+    window.addEventListener("pointerdown", onDown, { capture: true, passive: true });
+
+    return () => {
+      window.removeEventListener("pointermove", onMove, { capture: true } as any);
+      window.removeEventListener("pointerdown", onDown, { capture: true } as any);
+    };
+  }, [cellSize, gapPx, cols, count, sound]);
+
   return (
     <div
       ref={hostRef}
@@ -83,19 +155,18 @@ export default function OnGridBackground({ cellSize = 32, className = "" }: Prop
         ["--on-cell-size" as any]: `${cellSize}px`,
         ["--on-cols" as any]: cols,
         ["--on-rows" as any]: rows,
+        ["--on-gap" as any]: `${gapPx}px`,
+        ["--on-pad" as any]: `${padPx}px`,
       }}
     >
-      <div className="on-grid">
+      <div ref={gridRef} className="on-grid">
         {indices.map((i) => (
           <div
             key={i}
-            className="on-cell"
-            onPointerDown={(ev) => {
-              // Left click/tap only
-              if ((ev as any).button !== undefined && (ev as any).button !== 0) return;
-              sound?.click();
-              spawnRipple(ev);
+            ref={(el) => {
+              cellsRef.current[i] = el;
             }}
+            className="on-cell"
           />
         ))}
       </div>

@@ -168,8 +168,9 @@ export default function SprayRevealTileArt({
       const dpr = dprRef.current;
       const t = now;
 
-      // Age out splats (~2.2s)
-      splatsRef.current = splatsRef.current.filter((s) => t - s.t0 < 2200);
+      // Age out splats (keep MUCH longer — user requested persistent paint)
+      const TTL_MS = 30000; // ms
+      splatsRef.current = splatsRef.current.filter((s) => t - s.t0 < TTL_MS);
 
       ctx.clearRect(0, 0, w, h);
 
@@ -195,8 +196,9 @@ export default function SprayRevealTileArt({
 
       // Paint splats (spray)
       for (const s of splatsRef.current) {
-        const age = (t - s.t0) / 2200;
-        const a = (1 - age) * 0.9;
+        const age = (t - s.t0) / TTL_MS;
+        // Fade very slowly; stays readable for a long time
+        const a = (1 - age) * 0.95;
         if (a <= 0) continue;
         const r = s.r;
 
@@ -339,8 +341,8 @@ export default function SprayRevealTileArt({
       splatsRef.current.push({ x: sx, y: sy, t0: now, r, color: `rgb(${parseInt(color.slice(1, 3), 16)},${parseInt(color.slice(3, 5), 16)},${parseInt(color.slice(5, 7), 16)})` });
     }
 
-    // cap
-    if (splatsRef.current.length > 40) splatsRef.current.splice(0, splatsRef.current.length - 40);
+    // cap (higher since paint persists longer)
+    if (splatsRef.current.length > 220) splatsRef.current.splice(0, splatsRef.current.length - 220);
   };
 
   const onPointerLeave = () => {
