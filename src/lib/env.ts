@@ -6,10 +6,6 @@ export type PublicEnv = {
 export type ServerEnv = {
   SUPABASE_SERVICE_ROLE_KEY: string;
   INGEST_API_KEY: string;
-
-  // Optional (used by admin sync endpoints)
-  COINMARKETCAP_API_KEY?: string;
-  COINGECKO_PRO_API_KEY?: string;
 };
 
 function isNonEmptyString(v: unknown): v is string {
@@ -34,13 +30,6 @@ export function getServerEnv(): ServerEnv {
   if (missing.length) {
     throw new Error(`Missing/invalid server env vars: ${missing.join(", ")}`);
   }
-  const out: ServerEnv = { SUPABASE_SERVICE_ROLE_KEY: service as string, INGEST_API_KEY: ingest as string };
-
-  const cmc = process.env.COINMARKETCAP_API_KEY;
-  if (isNonEmptyString(cmc)) out.COINMARKETCAP_API_KEY = cmc;
-
-  const cg = process.env.COINGECKO_PRO_API_KEY;
-  if (isNonEmptyString(cg)) out.COINGECKO_PRO_API_KEY = cg;
-
-  return out;
+  // At this point they're validated as non-empty strings
+  return { SUPABASE_SERVICE_ROLE_KEY: service as string, INGEST_API_KEY: ingest as string };
 }
