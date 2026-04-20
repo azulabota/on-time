@@ -1,6 +1,7 @@
 "use client";
 
 import OnButton from "@/components/OnButton";
+import SprayRevealTileArt from "@/components/SprayRevealTileArt";
 
 function MicrocapTile() {
   return (
@@ -24,16 +25,17 @@ function MicrocapTile() {
         </div>
 
         <div className="hidden md:block">
-          <div className="on-tile-magnifier">
-            <div className="on-tile-magnifier-glass" />
-            <div className="on-tile-magnifier-handle" />
-            <div className="on-tile-magnifier-scan" />
-            <div className="on-tile-dot a" />
-            <div className="on-tile-dot b" />
-            <div className="on-tile-dot c" />
-            <div className="on-tile-dot d" />
-            <div className="on-tile-dot e" />
-            <div className="on-tile-dot gem" />
+          <div className="h-[220px] w-[320px] rounded-2xl border border-zinc-800 bg-zinc-950/40 overflow-hidden">
+            <SprayRevealTileArt
+              label="SPRAY TO REVEAL"
+              revealables={[
+                { id: "g1", x: 0.22, y: 0.32, kind: "gem" },
+                { id: "g2", x: 0.38, y: 0.58, kind: "gem" },
+                { id: "g3", x: 0.62, y: 0.28, kind: "gem" },
+                { id: "g4", x: 0.78, y: 0.52, kind: "gem" },
+                { id: "g5", x: 0.52, y: 0.74, kind: "gem" },
+              ]}
+            />
           </div>
         </div>
       </div>
@@ -63,16 +65,17 @@ function NewProjectsTile() {
         </div>
 
         <div className="hidden md:block">
-          <div className="on-tile-ticker">
-            <div className="on-tile-row r1" />
-            <div className="on-tile-row r2" />
-            <div className="on-tile-row r3" />
-            <div className="on-tile-row r4" />
-            <div className="on-tile-row r5" />
-            <div className="on-tile-row r6" />
-            <div className="on-tile-row r7" />
-            <div className="on-tile-row r8" />
-            <div className="on-tile-row r9" />
+          <div className="h-[220px] w-[320px] rounded-2xl border border-zinc-800 bg-zinc-950/40 overflow-hidden">
+            <SprayRevealTileArt
+              label="SCAN FOR NEW"
+              revealables={[
+                { id: "p1", x: 0.25, y: 0.30, kind: "pin" },
+                { id: "p2", x: 0.48, y: 0.44, kind: "pin" },
+                { id: "p3", x: 0.70, y: 0.34, kind: "pin" },
+                { id: "p4", x: 0.62, y: 0.62, kind: "pin" },
+                { id: "p5", x: 0.34, y: 0.68, kind: "pin" },
+              ]}
+            />
           </div>
         </div>
       </div>
