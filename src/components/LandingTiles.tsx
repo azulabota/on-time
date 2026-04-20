@@ -24,8 +24,8 @@ function MicrocapTile() {
           </div>
         </div>
 
-        <div className="hidden md:block">
-          <div className="h-[220px] w-[320px] rounded-2xl border border-zinc-800 bg-zinc-950/40 overflow-hidden">
+        <div className="mt-5 w-full md:mt-0 md:w-auto">
+          <div className="h-[170px] w-full rounded-2xl border border-zinc-800 bg-zinc-950/40 overflow-hidden md:h-[220px] md:w-[320px]">
             <SprayRevealTileArt
               label="SPRAY TO REVEAL"
               revealables={[
@@ -64,8 +64,8 @@ function NewProjectsTile() {
           </div>
         </div>
 
-        <div className="hidden md:block">
-          <div className="h-[220px] w-[320px] rounded-2xl border border-zinc-800 bg-zinc-950/40 overflow-hidden">
+        <div className="mt-5 w-full md:mt-0 md:w-auto">
+          <div className="h-[170px] w-full rounded-2xl border border-zinc-800 bg-zinc-950/40 overflow-hidden md:h-[220px] md:w-[320px]">
             <SprayRevealTileArt
               label="SCAN FOR NEW"
               revealables={[

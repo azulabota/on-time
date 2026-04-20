@@ -123,7 +123,8 @@ export default function SprayRevealTileArt({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number | null>(null);
   const splatsRef = useRef<Splat[]>([]);
-  const pointerRef = useRef<{ x: number; y: number; active: boolean }>({ x: 0.5, y: 0.5, active: false });
+  const pointerRef = useRef<{ x: number; y: number; active: boolean; pointerType: string }>({ x: 0.5, y: 0.5, active: false, pointerType: "mouse" });
+  const paintingRef = useRef<boolean>(false);
   const reduced = useMemo(() => prefersReducedMotion(), []);
 
   const [found, setFound] = useState<Record<string, number>>({}); // id -> foundAt (ms)
@@ -315,38 +316,59 @@ export default function SprayRevealTileArt({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reduced, label]);
 
-  const onPointerMove = (e: React.PointerEvent) => {
+  const addSprayAtPointer = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
-    pointerRef.current = { x: clamp01(x), y: clamp01(y), active: true };
-
-    if (reduced) return;
-
     const dpr = dprRef.current;
     const now = performance.now();
     const px = pointerRef.current.x * canvas.width;
     const py = pointerRef.current.y * canvas.height;
 
-    // Add a few splats per move
+    // Add a few splats per tick
     const n = 2;
     for (let i = 0; i < n; i++) {
       const jitter = 10 * dpr;
       const sx = px + (Math.random() - 0.5) * jitter;
       const sy = py + (Math.random() - 0.5) * jitter;
       const r = (18 + Math.random() * 26) * dpr;
-      const color = PALETTE[Math.floor(Math.random() * PALETTE.length)];
-      splatsRef.current.push({ x: sx, y: sy, t0: now, r, color: `rgb(${parseInt(color.slice(1, 3), 16)},${parseInt(color.slice(3, 5), 16)},${parseInt(color.slice(5, 7), 16)})` });
+      const hex = PALETTE[Math.floor(Math.random() * PALETTE.length)];
+      const color = `rgb(${parseInt(hex.slice(1, 3), 16)},${parseInt(hex.slice(3, 5), 16)},${parseInt(hex.slice(5, 7), 16)})`;
+      splatsRef.current.push({ x: sx, y: sy, t0: now, r, color });
     }
 
     // cap (higher since paint persists longer)
-    if (splatsRef.current.length > 220) splatsRef.current.splice(0, splatsRef.current.length - 220);
+    if (splatsRef.current.length > 240) splatsRef.current.splice(0, splatsRef.current.length - 240);
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    pointerRef.current = { x: clamp01(x), y: clamp01(y), active: true, pointerType: e.pointerType || "mouse" };
+
+    if (reduced) return;
+
+    // Desktop: spray on hover. Mobile: only spray while pressing/dragging.
+    const isMouse = (e.pointerType || "mouse") === "mouse";
+    if (isMouse || paintingRef.current) {
+      addSprayAtPointer();
+    }
+  };
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    paintingRef.current = true;
+    onPointerMove(e);
+  };
+
+  const onPointerUp = () => {
+    paintingRef.current = false;
   };
 
   const onPointerLeave = () => {
     pointerRef.current.active = false;
+    paintingRef.current = false;
   };
 
   // Reduced motion fallback: render a static hint
@@ -361,7 +383,11 @@ export default function SprayRevealTileArt({
       <canvas
         ref={canvasRef}
         className="h-full w-full"
+        style={{ touchAction: "none" }}
+        onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
         onPointerEnter={onPointerMove}
         onPointerLeave={onPointerLeave}
       />
