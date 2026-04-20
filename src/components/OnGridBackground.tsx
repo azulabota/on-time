@@ -20,7 +20,7 @@ function debounce<T extends (...args: any[]) => void>(fn: T, ms: number) {
   };
 }
 
-export default function OnGridBackground({ cellSize = 14, className = "" }: Props) {
+export default function OnGridBackground({ cellSize = 16, className = "" }: Props) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const gridRef = useRef<HTMLDivElement | null>(null);
   const cellsRef = useRef<Array<HTMLDivElement | null>>([]);
@@ -55,9 +55,10 @@ export default function OnGridBackground({ cellSize = 14, className = "" }: Prop
   const indices = useMemo(() => Array.from({ length: count }, (_, i) => i), [count]);
 
   const { gapPx, padPx } = useMemo(() => {
-    // Tuned to look good when cellSize is tiny (user asked ~75% smaller again)
-    const gapPx = clamp(Math.round(cellSize * 0.65), 4, 12);
-    const padPx = clamp(Math.round(cellSize * 1.25) + 10, 14, 46);
+    // User request: move buttons closer together.
+    // Keep a small gap so it doesn't look like a solid sheet.
+    const gapPx = clamp(Math.round(cellSize * 0.35), 2, 8);
+    const padPx = clamp(Math.round(cellSize * 1.05) + 10, 14, 56);
     return { gapPx, padPx };
   }, [cellSize]);
 
