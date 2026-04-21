@@ -107,16 +107,31 @@ async function fetchJson(url: string) {
 async function insertLaunchRowsBestEffort(rows: any[]) {
   const supabase = supabaseService();
 
-  // Try new schema (source/source_id/launch_ts)
-  const { error: insErr1 } = await supabase.from("launch_projects").insert(rows);
-  if (!insErr1) return { ok: true, mode: "insert" };
+  // Preferred path when the migration is applied:
+  // Use upsert + ignoreDuplicates so recurring scans don't error and don't create dupes.
+  // Requires: columns (source, source_id, launch_ts) + unique index on (source, source_id).
+  const { error: upErr } = await supabase
+    .from("launch_projects")
+    // @ts-ignore supabase-js supports ignoreDuplicates on upsert
+    .upsert(rows, { onConflict: "source,source_id", ignoreDuplicates: true });
 
-  // Fallback: remove de-dupe columns if the user hasn't migrated Supabase yet
-  const compact = rows.map(({ source, source_id, launch_ts, ...rest }) => rest);
-  const { error: insErr2 } = await supabase.from("launch_projects").insert(compact);
-  if (!insErr2) return { ok: true, mode: "insert-legacy" };
+  if (!upErr) return { ok: true, mode: "upsert" };
 
-  return { ok: false, error: insErr1.message + " | fallback: " + insErr2.message };
+  const msg = (upErr?.message ?? "").toLowerCase();
+
+  // Only fall back to legacy insert when the columns truly don't exist.
+  // DO NOT fall back on other errors (it would drop source/source_id and defeat de-dupe).
+  const missingColumns =
+    msg.includes("column") && (msg.includes("source") || msg.includes("source_id") || msg.includes("launch_ts"));
+
+  if (missingColumns) {
+    const compact = rows.map(({ source, source_id, launch_ts, ...rest }) => rest);
+    const { error: insErr2 } = await supabase.from("launch_projects").insert(compact);
+    if (!insErr2) return { ok: true, mode: "insert-legacy" };
+    return { ok: false, error: upErr.message + " | fallback: " + insErr2.message };
+  }
+
+  return { ok: false, error: upErr.message };
 }
 
 export async function POST(req: Request) {
