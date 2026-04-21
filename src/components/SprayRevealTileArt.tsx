@@ -309,6 +309,134 @@ export default function SprayRevealTileArt({
         ctx.restore();
       }
 
+      // New Project tile: always draw the "dual feed lanes" base (even after activation)
+      // so the tile feels clean/organized rather than just abstract mist.
+      const drawDualFeedLanes = (alpha: number) => {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+
+        const pad = 18 * dpr;
+        const gutter = 14 * dpr;
+        const laneW = (w - pad * 2 - gutter) / 2;
+        const laneH = h - pad * 2;
+        const xL = pad;
+        const xR = pad + laneW + gutter;
+        const y0 = pad;
+
+        // lane backplates
+        ctx.fillStyle = "rgba(255,255,255,0.03)";
+        ctx.strokeStyle = "rgba(255,255,255,0.07)";
+        ctx.lineWidth = 1 * dpr;
+        ctx.beginPath();
+        ctx.roundRect(xL, y0, laneW, laneH, 16 * dpr);
+        ctx.fill();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.roundRect(xR, y0, laneW, laneH, 16 * dpr);
+        ctx.fill();
+        ctx.stroke();
+
+        // headers
+        ctx.font = `${10 * dpr}px ui-sans-serif, system-ui, -apple-system`;
+        ctx.fillStyle = "rgba(255,255,255,0.45)";
+        ctx.fillText("TOKENS", xL + 12 * dpr, y0 + 18 * dpr);
+        ctx.fillText("PRODUCTS", xR + 12 * dpr, y0 + 18 * dpr);
+
+        // subtle header underline
+        ctx.strokeStyle = "rgba(255,255,255,0.08)";
+        ctx.lineWidth = 1 * dpr;
+        ctx.beginPath();
+        ctx.moveTo(xL + 10 * dpr, y0 + 26 * dpr);
+        ctx.lineTo(xL + laneW - 10 * dpr, y0 + 26 * dpr);
+        ctx.moveTo(xR + 10 * dpr, y0 + 26 * dpr);
+        ctx.lineTo(xR + laneW - 10 * dpr, y0 + 26 * dpr);
+        ctx.stroke();
+
+        const rowTop = y0 + 38 * dpr;
+        const rowH = 14 * dpr;
+        const gap = 10 * dpr;
+        const rowsN = 8;
+
+        const laneDraw = (x: number, speedPx: number, accent: "teal" | "purple") => {
+          const cycle = rowH + gap;
+          const yShift = ((t / 30) * speedPx) % cycle;
+
+          for (let i = 0; i < rowsN; i++) {
+            const y = rowTop + i * cycle - yShift;
+            if (y < rowTop - cycle || y > y0 + laneH - 8 * dpr) continue;
+
+            // left icon
+            const icx = x + 16 * dpr;
+            const icy = y + rowH / 2;
+            ctx.fillStyle = "rgba(255,255,255,0.06)";
+            ctx.beginPath();
+            ctx.arc(icx, icy, 5.2 * dpr, 0, Math.PI * 2);
+            ctx.fill();
+
+            const dot = accent === "teal" ? "rgba(0,252,198,0.35)" : "rgba(114,72,198,0.35)";
+            ctx.fillStyle = dot;
+            ctx.beginPath();
+            ctx.arc(icx, icy, 2.3 * dpr, 0, Math.PI * 2);
+            ctx.fill();
+
+            // name pill
+            const nameW = laneW * (0.44 + 0.30 * ((i % 4) / 4));
+            const tagW = laneW * (0.18 + 0.12 * (((i + 2) % 3) / 3));
+            const xP = x + 28 * dpr;
+
+            ctx.fillStyle = "rgba(255,255,255,0.055)";
+            ctx.strokeStyle = "rgba(255,255,255,0.085)";
+            ctx.lineWidth = 1 * dpr;
+            ctx.beginPath();
+            ctx.roundRect(xP, y, nameW, rowH, 999);
+            ctx.fill();
+            ctx.stroke();
+
+            // tag pill
+            ctx.fillStyle = "rgba(255,255,255,0.045)";
+            ctx.strokeStyle = "rgba(255,255,255,0.075)";
+            ctx.beginPath();
+            ctx.roundRect(xP + nameW + 8 * dpr, y, tagW, rowH, 999);
+            ctx.fill();
+            ctx.stroke();
+
+            // tiny "NEW" flash on occasional rows
+            const flash = 0.5 + 0.5 * Math.sin((t / 240) + i * 0.9 + (accent === "teal" ? 0 : 1.7));
+            if (flash > 0.86) {
+              ctx.fillStyle = accent === "teal" ? "rgba(0,252,198,0.14)" : "rgba(114,72,198,0.14)";
+              ctx.beginPath();
+              ctx.roundRect(xP + nameW + tagW - 12 * dpr, y + 2 * dpr, 18 * dpr, rowH - 4 * dpr, 999);
+              ctx.fill();
+            }
+          }
+
+          // gentle shimmer pass
+          const sx = x + (0.12 + 0.86 * ((t / 1400) % 1)) * laneW;
+          const grad = ctx.createLinearGradient(sx - 36 * dpr, 0, sx + 36 * dpr, 0);
+          grad.addColorStop(0, "rgba(255,255,255,0)");
+          grad.addColorStop(0.5, accent === "teal" ? "rgba(0,252,198,0.06)" : "rgba(114,72,198,0.06)");
+          grad.addColorStop(1, "rgba(255,255,255,0)");
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.roundRect(x, y0, laneW, laneH, 16 * dpr);
+          ctx.clip();
+          ctx.fillStyle = grad;
+          ctx.fillRect(sx - 40 * dpr, y0, 80 * dpr, laneH);
+          ctx.restore();
+        };
+
+        laneDraw(xL, 0.030 * h, "teal");
+        laneDraw(xR, 0.026 * h, "purple");
+
+        ctx.restore();
+      };
+
+      if (variant === "tracker") {
+        // Slightly reduced opacity once activated so the revealables/pointer read clearly.
+        drawDualFeedLanes(activated ? 0.92 : 1.0);
+      }
+
       // Idle animation (different per tile) until user interacts
       if (!activated) {
         if (variant === "gems") {
@@ -371,53 +499,6 @@ export default function SprayRevealTileArt({
           for (const [x0, y0] of pts) {
             ctx.beginPath();
             ctx.arc(x0, y0, 2.8 * dpr, 0, Math.PI * 2);
-            ctx.fill();
-          }
-        } else {
-          // Tracker idle: flowing listing rows + scanning highlight
-          const top = h * 0.18;
-          const rowH = 14 * dpr;
-          const gap = 9 * dpr;
-          const rowsN = 8;
-
-          // moving stack
-          const speed = 0.035 * h;
-          const yShift = ((t / 30) * speed) % (rowH + gap);
-
-          for (let i = 0; i < rowsN; i++) {
-            const y = top + i * (rowH + gap) - yShift;
-            const wRow = w * (0.55 + 0.35 * ((i % 3) / 3));
-            const x = w * 0.12;
-
-            ctx.fillStyle = "rgba(255,255,255,0.06)";
-            ctx.strokeStyle = "rgba(255,255,255,0.10)";
-            ctx.lineWidth = 1 * dpr;
-
-            ctx.beginPath();
-            ctx.roundRect(x, y, wRow, rowH, 999);
-            ctx.fill();
-            ctx.stroke();
-          }
-
-          // scanning highlight bar
-          const scanX = (0.1 + 0.8 * ((t / 900) % 1)) * w;
-          const hg = ctx.createRadialGradient(scanX, h * 0.52, 0, scanX, h * 0.52, w * 0.45);
-          hg.addColorStop(0, "rgba(114,72,198,0.10)");
-          hg.addColorStop(1, "rgba(114,72,198,0)");
-          ctx.fillStyle = hg;
-          ctx.fillRect(0, 0, w, h);
-
-          // pins faint
-          const ph = 0.5 + 0.5 * Math.sin(t / 700);
-          ctx.fillStyle = `rgba(114,72,198,${0.08 + 0.10 * ph})`;
-          const pins = [
-            [w * 0.76, h * 0.32],
-            [w * 0.70, h * 0.62],
-            [w * 0.58, h * 0.44],
-          ];
-          for (const [x0, y0] of pins) {
-            ctx.beginPath();
-            ctx.arc(x0, y0, 3.0 * dpr, 0, Math.PI * 2);
             ctx.fill();
           }
         }

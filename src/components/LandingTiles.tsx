@@ -69,11 +69,12 @@ function NewProjectsTile() {
             <SprayRevealTileArt
               variant="tracker"
               revealables={[
-                { id: "p1", x: 0.25, y: 0.30, kind: "pin" },
-                { id: "p2", x: 0.48, y: 0.44, kind: "pin" },
-                { id: "p3", x: 0.70, y: 0.34, kind: "pin" },
-                { id: "p4", x: 0.62, y: 0.62, kind: "pin" },
-                { id: "p5", x: 0.34, y: 0.68, kind: "pin" },
+                // Keep pins, but place them inside the two feed lanes so it feels intentional.
+                { id: "p1", x: 0.24, y: 0.34, kind: "pin" },
+                { id: "p2", x: 0.36, y: 0.58, kind: "pin" },
+                { id: "p3", x: 0.68, y: 0.36, kind: "pin" },
+                { id: "p4", x: 0.78, y: 0.58, kind: "pin" },
+                { id: "p5", x: 0.72, y: 0.76, kind: "pin" },
               ]}
             />
           </div>
