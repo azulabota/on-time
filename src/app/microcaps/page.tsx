@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { supabaseAnonSafe } from "@/lib/supabaseClient";
+import TokenCopyShare from "@/components/TokenCopyShare";
 import type { TokenReport } from "@/lib/types";
 
 export const revalidate = 60; // keep it fresh
@@ -83,6 +84,8 @@ export default async function TokensPage() {
 
               <div className="mt-4 text-sm text-zinc-200">{t.summary}</div>
               <div className="mt-3 text-xs text-zinc-400">Projection: {t.success_projection}</div>
+
+              <TokenCopyShare token={t} />
 
               <div className="mt-4 text-xs text-zinc-600">{new Date(t.created_at).toISOString()}</div>
             </div>
